@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=BioAuth Polkit Agent
+Comment=Fingerprint authentication agent for privilege escalation
+Exec=/usr/local/libexec/bioauth-overlay
+Type=Application
+NoDisplay=true
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=1
+X-GNOME-Autostart-Phase=Initialization

@@ -1,0 +1,31 @@
+# SELinux file contexts for BioAuth
+#
+# File: bioauth.fc — File Context definitions
+# Maps filesystem paths to SELinux types for BioAuth components.
+#
+# Usage: Applied during package install (via semodule) or manually:
+#   restorecon -Rv /usr/sbin/biometric-authd /var/lib/bioauth /etc/bioauth
+
+# ── Executables ──────────────────────────────────────────────────
+/usr/sbin/biometric-authd           --  gen_context(system_u:object_r:bioauth_exec_t,s0)
+/usr/libexec/bioauth-fido2d         --  gen_context(system_u:object_r:bioauth_exec_t,s0)
+/usr/bin/bioauth-enroll             --  gen_context(system_u:object_r:bioauth_exec_t,s0)
+/usr/bin/bioauth-verify             --  gen_context(system_u:object_r:bioauth_exec_t,s0)
+/usr/bin/bioauth-config             --  gen_context(system_u:object_r:bioauth_exec_t,s0)
+
+# ── PAM module ───────────────────────────────────────────────────
+/usr/lib64/security/pam_bioauth\.so --  gen_context(system_u:object_r:bioauth_pam_t,s0)
+/usr/lib/security/pam_bioauth\.so   --  gen_context(system_u:object_r:bioauth_pam_t,s0)
+
+# ── Configuration ────────────────────────────────────────────────
+/etc/bioauth(/.*)?                      gen_context(system_u:object_r:bioauth_etc_t,s0)
+/etc/bioauth/bioauth\.conf          --  gen_context(system_u:object_r:bioauth_etc_t,s0)
+
+# ── State directory ──────────────────────────────────────────────
+/var/lib/bioauth(/.*)?                  gen_context(system_u:object_r:bioauth_var_lib_t,s0)
+/var/lib/bioauth/users(/.*)?            gen_context(system_u:object_r:bioauth_var_lib_t,s0)
+/var/lib/bioauth/fido2(/.*)?            gen_context(system_u:object_r:bioauth_var_lib_t,s0)
+
+# ── Runtime directory ────────────────────────────────────────────
+/run/bioauth(/.*)?                      gen_context(system_u:object_r:bioauth_runtime_t,s0)
+/run/bioauth/fido2\.sock            -s  gen_context(system_u:object_r:bioauth_fido2_sock_t,s0)

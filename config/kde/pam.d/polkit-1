@@ -1,0 +1,26 @@
+#
+# PAM configuration for KDE Plasma Polkit agent
+# BioAuth fingerprint authentication for privilege escalation
+#
+# This integrates fingerprint auth with KDE's PolicyKit agent
+# (polkit-kde-authentication-agent-1), enabling fingerprint auth
+# for privilege prompts like "System Settings needs admin access".
+#
+# Place at /etc/pam.d/polkit-1 (replaces or extends existing)
+#
+
+#%PAM-1.0
+
+# ── Authentication ──────────────────────────────────────────────
+# Try fingerprint, fall back to password
+auth      [success=2 default=ignore]  pam_bioauth.so timeout=30
+auth      include                     system-auth
+
+# ── Account management ──────────────────────────────────────────
+account   include   system-auth
+
+# ── Password management ─────────────────────────────────────────
+password  include   system-auth
+
+# ── Session setup ───────────────────────────────────────────────
+session   include   system-auth

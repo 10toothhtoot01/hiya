@@ -1,0 +1,28 @@
+#
+# PAM configuration for KDE Plasma screen locker (KScreenLocker)
+# BioAuth fingerprint unlock integration
+#
+# This file enables fingerprint unlock from the KDE lock screen.
+# Place at /etc/pam.d/kde or /etc/pam.d/kscreenlocker
+# (Fedora uses "kde" as the PAM service name for KScreenLocker)
+#
+# Flow:
+#   1. Screen is locked (via timer, lid close, or manual)
+#   2. User touches fingerprint sensor on lock screen
+#   3. pam_bioauth.so verifies fingerprint via BioAuth daemon
+#   4. If fingerprint succeeds → screen unlocked
+#   5. If fingerprint fails → fall through to password entry
+#
+
+#%PAM-1.0
+
+# ── Authentication ──────────────────────────────────────────────
+# Try fingerprint first (shorter timeout for unlock UX)
+auth      [success=2 default=ignore]  pam_bioauth.so timeout=15
+auth      include                     system-auth
+
+# ── Account management ──────────────────────────────────────────
+account   include   system-auth
+
+# ── Session setup ───────────────────────────────────────────────
+session   include   system-auth

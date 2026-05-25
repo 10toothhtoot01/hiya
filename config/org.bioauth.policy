@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
+
+<!--
+  PolicyKit policy definitions for BioAuth biometric authentication.
+
+  Install to: /usr/share/polkit-1/actions/org.bioauth.policy
+
+  These actions control access to privileged BioAuth operations.
+  Regular fingerprint verification uses PAM and does not need polkit.
+-->
+
+<policyconfig>
+
+  <vendor>BioAuth Project</vendor>
+  <vendor_url>https://github.com/bioauth/bioauth</vendor_url>
+  <icon_name>fingerprint-gui</icon_name>
+
+  <!-- ── Enroll a fingerprint for yourself ───────────────────── -->
+  <action id="org.bioauth.enroll-self">
+    <description>Enroll a fingerprint</description>
+    <description xml:lang="en">Enroll a fingerprint for your own account</description>
+    <message>Authentication is required to enroll a fingerprint</message>
+    <message xml:lang="en">Authentication is required to enroll a fingerprint</message>
+    <defaults>
+      <allow_any>auth_self</allow_any>
+      <allow_inactive>auth_self</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+  </action>
+
+  <!-- ── Enroll a fingerprint for another user ───────────────── -->
+  <action id="org.bioauth.enroll-other">
+    <description>Enroll a fingerprint for another user</description>
+    <description xml:lang="en">Enroll a fingerprint for another user's account</description>
+    <message>Administrator authentication is required to enroll a fingerprint for another user</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+
+  <!-- ── Delete a fingerprint enrollment ─────────────────────── -->
+  <action id="org.bioauth.delete-enrollment">
+    <description>Delete a fingerprint enrollment</description>
+    <description xml:lang="en">Delete a stored fingerprint enrollment</description>
+    <message>Authentication is required to delete a fingerprint enrollment</message>
+    <defaults>
+      <allow_any>auth_self</allow_any>
+      <allow_inactive>auth_self</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+  </action>
+
+  <!-- ── Delete another user's enrollment ────────────────────── -->
+  <action id="org.bioauth.delete-enrollment-other">
+    <description>Delete another user's fingerprint enrollment</description>
+    <description xml:lang="en">Delete another user's stored fingerprint enrollment</description>
+    <message>Administrator authentication is required to delete another user's fingerprint enrollment</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+
+  <!-- ── Manage daemon configuration ─────────────────────────── -->
+  <action id="org.bioauth.manage-config">
+    <description>Manage BioAuth configuration</description>
+    <description xml:lang="en">Change BioAuth daemon configuration settings</description>
+    <message>Administrator authentication is required to change BioAuth settings</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+
+  <!-- ── View device status (low privilege) ──────────────────── -->
+  <action id="org.bioauth.device-info">
+    <description>View fingerprint device information</description>
+    <description xml:lang="en">View information about connected fingerprint devices</description>
+    <message>Authentication is required to view fingerprint device information</message>
+    <defaults>
+      <allow_any>auth_self</allow_any>
+      <allow_inactive>auth_self</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+  </action>
+
+</policyconfig>

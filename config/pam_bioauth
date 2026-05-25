@@ -1,0 +1,41 @@
+# PAM configuration snippet for BioAuth fingerprint authentication
+#
+# This file enables fingerprint authentication through BioAuth's
+# PAM module (pam_bioauth.so). It should be included in your
+# system's PAM configuration files.
+#
+# Installation (Fedora/RHEL):
+#   sudo cp pam_bioauth /etc/pam.d/
+#   # Then add to /etc/pam.d/system-auth or /etc/pam.d/gdm-fingerprint:
+#   #   auth include pam_bioauth
+#
+# Installation (manual, add to /etc/pam.d/system-auth BEFORE pam_unix):
+#   auth  [success=done default=ignore]  pam_bioauth.so try_first timeout=15
+#
+# Options:
+#   try_first    - Try fingerprint first; if no enrollments or failure,
+#                  fall through to the next PAM module (e.g., password)
+#   timeout=N    - Seconds to wait for a fingerprint (default: 15)
+#   debug        - Enable verbose PAM logging to syslog
+#
+# Behavior:
+#   - If the user has enrolled fingerprints:
+#       * Match     → PAM_SUCCESS (authentication succeeds)
+#       * No match  → PAM_AUTH_ERR (try_first) or PAM_IGNORE (!try_first)
+#   - If the user has NO enrolled fingerprints:
+#       * try_first → PAM_AUTH_ERR (so the stack continues)
+#       * !try_first → PAM_IGNORE (silently skip)
+#
+# ═══════════════════════════════════════════════════════════════
+#
+# Option 1: Try fingerprint first, fall back to password
+#   (recommended for desktop login)
+auth  [success=done new_authtok_reqd=done default=ignore]  pam_bioauth.so try_first timeout=15
+
+# Option 2: Require fingerprint (no password fallback)
+#   (for high-security scenarios)
+# auth  required  pam_bioauth.so timeout=30
+
+# Option 3: Fingerprint OR password (sufficient)
+#   (for flexible authentication)
+# auth  sufficient  pam_bioauth.so timeout=15

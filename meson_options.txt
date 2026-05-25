@@ -1,0 +1,7 @@
+# BioAuth build options
+
+option('ui',
+    type : 'feature',
+    value : 'auto',
+    description : 'Build Qt6/QML frontend (auth overlay, KCM, plasmoid)'
+)

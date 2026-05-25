@@ -1,0 +1,80 @@
+# udev rules for BioAuth fingerprint devices
+#
+# Install to: /usr/lib/udev/rules.d/70-bioauth-fingerprint.rules
+#
+# These rules ensure fingerprint readers get correct permissions
+# and trigger systemd service activation when plugged in.
+#
+# Covers known fingerprint reader USB vendors:
+#   - Goodix (27C6)       - Elan Microelectronics (04F3)
+#   - Synaptics (06CB)    - AuthenTec / Apple (08FF, 05AC)
+#   - Validity (138A)     - Upek (147E)
+#   - DigitalPersona (05BA) - FocalTech (2808)
+#   - STMicroelectronics (0483)
+
+# ── Generic: any device supported by libfprint ──────────────────
+# libfprint uses the "fprint" subsystem driver; tag devices it claims.
+# This matches any USB device that libfprint's autoprobe would open.
+SUBSYSTEM=="usb", ENV{ID_FPRINT}=="1", TAG+="bioauth", TAG+="systemd", TAG+="uaccess", \
+    ENV{SYSTEMD_WANTS}+="biometric-authd.service", \
+    MODE="0660", GROUP="input"
+
+# ── Goodix MOC (most common on modern laptops) ──────────────────
+SUBSYSTEM=="usb", ATTR{idVendor}=="27c6", TAG+="bioauth", TAG+="systemd", TAG+="uaccess", \
+    ENV{SYSTEMD_WANTS}+="biometric-authd.service", \
+    MODE="0660", GROUP="input"
+
+# ── Elan Microelectronics ────────────────────────────────────────
+SUBSYSTEM=="usb", ATTR{idVendor}=="04f3", TAG+="bioauth", TAG+="systemd", TAG+="uaccess", \
+    ENV{SYSTEMD_WANTS}+="biometric-authd.service", \
+    MODE="0660", GROUP="input"
+
+# ── Synaptics / WBDI ────────────────────────────────────────────
+SUBSYSTEM=="usb", ATTR{idVendor}=="06cb", TAG+="bioauth", TAG+="systemd", TAG+="uaccess", \
+    ENV{SYSTEMD_WANTS}+="biometric-authd.service", \
+    MODE="0660", GROUP="input"
+
+# ── Validity Sensors (now Synaptics) ─────────────────────────────
+SUBSYSTEM=="usb", ATTR{idVendor}=="138a", TAG+="bioauth", TAG+="systemd", TAG+="uaccess", \
+    ENV{SYSTEMD_WANTS}+="biometric-authd.service", \
+    MODE="0660", GROUP="input"
+
+# ── AuthenTec ────────────────────────────────────────────────────
+SUBSYSTEM=="usb", ATTR{idVendor}=="08ff", TAG+="bioauth", TAG+="systemd", TAG+="uaccess", \
+    ENV{SYSTEMD_WANTS}+="biometric-authd.service", \
+    MODE="0660", GROUP="input"
+
+# ── Upek / TouchChip ────────────────────────────────────────────
+SUBSYSTEM=="usb", ATTR{idVendor}=="147e", TAG+="bioauth", TAG+="systemd", TAG+="uaccess", \
+    ENV{SYSTEMD_WANTS}+="biometric-authd.service", \
+    MODE="0660", GROUP="input"
+
+# ── DigitalPersona (now HID Global) ─────────────────────────────
+SUBSYSTEM=="usb", ATTR{idVendor}=="05ba", TAG+="bioauth", TAG+="systemd", TAG+="uaccess", \
+    ENV{SYSTEMD_WANTS}+="biometric-authd.service", \
+    MODE="0660", GROUP="input"
+
+# ── FocalTech ────────────────────────────────────────────────────
+SUBSYSTEM=="usb", ATTR{idVendor}=="2808", TAG+="bioauth", TAG+="systemd", TAG+="uaccess", \
+    ENV{SYSTEMD_WANTS}+="biometric-authd.service", \
+    MODE="0660", GROUP="input"
+
+# ── STMicroelectronics ──────────────────────────────────────────
+SUBSYSTEM=="usb", ATTR{idVendor}=="0483", TAG+="bioauth", TAG+="systemd", TAG+="uaccess", \
+    ENV{SYSTEMD_WANTS}+="biometric-authd.service", \
+    MODE="0660", GROUP="input"
+
+# ── Apple (built-in Touch ID sensor, if using thunderbolt) ──────
+SUBSYSTEM=="usb", ATTR{idVendor}=="05ac", ATTR{idProduct}=="8600", \
+    TAG+="bioauth", TAG+="systemd", TAG+="uaccess", \
+    ENV{SYSTEMD_WANTS}+="biometric-authd.service", \
+    MODE="0660", GROUP="input"
+
+# ── TPM device access ───────────────────────────────────────────
+# Ensure the TPM resource manager is accessible to biometric-authd
+KERNEL=="tpmrm[0-9]*", TAG+="bioauth", MODE="0660", GROUP="tss"
+
+# ── BioAuth virtual FIDO2 authenticator (UHID) ──────────────────
+# Grant browser access to the virtual HID device created by bioauth-fido2d
+KERNEL=="hidraw*", ATTRS{idVendor}=="b10a", ATTRS{idProduct}=="f1d0", \
+    TAG+="bioauth", TAG+="uaccess", MODE="0660", GROUP="input"

@@ -1,0 +1,14 @@
+build/
+builddir/
+*.o
+*.so
+*.a
+compile_commands.json
+.ninja_*
+meson-private/
+meson-info/
+meson-logs/
+*.pyc
+__pycache__/
+*.bioauth-backup
+logs.txt

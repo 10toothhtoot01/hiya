@@ -1,0 +1,91 @@
+## <summary>BioAuth biometric authentication daemon policy interface</summary>
+## <desc>
+##   <p>
+##     Policy interface for the BioAuth biometric authentication daemon.
+##     BioAuth provides fingerprint-based authentication as a local
+##     alternative to password authentication on Linux systems.
+##   </p>
+## </desc>
+
+########################################
+## <summary>
+##   Connect to bioauth daemon over D-Bus.
+## </summary>
+## <param name="domain">
+##   <summary>
+##     Domain allowed to connect to bioauth.
+##   </summary>
+## </param>
+#
+interface(`bioauth_dbus_chat',`
+    gen_require(`
+        type bioauth_t;
+        class dbus send_msg;
+    ')
+
+    allow $1 bioauth_t:dbus send_msg;
+    allow bioauth_t $1:dbus send_msg;
+')
+
+########################################
+## <summary>
+##   Read bioauth configuration files.
+## </summary>
+## <param name="domain">
+##   <summary>
+##     Domain allowed to read bioauth config.
+##   </summary>
+## </param>
+#
+interface(`bioauth_read_config',`
+    gen_require(`
+        type bioauth_etc_t;
+    ')
+
+    files_search_etc($1)
+    allow $1 bioauth_etc_t:dir search;
+    allow $1 bioauth_etc_t:file { read getattr open };
+')
+
+########################################
+## <summary>
+##   Read bioauth state files.
+## </summary>
+## <param name="domain">
+##   <summary>
+##     Domain allowed to read bioauth state.
+##   </summary>
+## </param>
+#
+interface(`bioauth_read_state',`
+    gen_require(`
+        type bioauth_var_lib_t;
+    ')
+
+    files_search_var_lib($1)
+    allow $1 bioauth_var_lib_t:dir search;
+    allow $1 bioauth_var_lib_t:file { read getattr open };
+')
+
+########################################
+## <summary>
+##   Connect to the FIDO2 Unix socket.
+## </summary>
+## <param name="domain">
+##   <summary>
+##     Domain allowed to connect to the FIDO2 socket.
+##   </summary>
+## </param>
+#
+interface(`bioauth_fido2_stream_connect',`
+    gen_require(`
+        type bioauth_t;
+        type bioauth_runtime_t;
+        type bioauth_fido2_sock_t;
+    ')
+
+    files_search_runtime($1)
+    allow $1 bioauth_runtime_t:dir search;
+    allow $1 bioauth_fido2_sock_t:sock_file write;
+    allow $1 bioauth_t:unix_stream_socket connectto;
+')

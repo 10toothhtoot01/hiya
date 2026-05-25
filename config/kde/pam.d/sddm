@@ -1,0 +1,32 @@
+#
+# PAM configuration for SDDM (KDE Plasma 6 display manager)
+# BioAuth fingerprint authentication integration
+#
+# This file enables fingerprint login on the SDDM greeter.
+# Place at /etc/pam.d/sddm or include in existing sddm PAM config.
+#
+# Flow:
+#   1. SDDM presents login screen
+#   2. User selects account
+#   3. pam_bioauth.so prompts for fingerprint via BioAuth daemon
+#   4. If fingerprint succeeds → login granted
+#   5. If fingerprint fails/timeout → fall through to password
+#
+
+#%PAM-1.0
+
+# ── Authentication ──────────────────────────────────────────────
+# Try fingerprint first, fall through to password on failure
+auth      [success=2 default=ignore]  pam_bioauth.so timeout=30
+auth      include                     system-auth
+
+# ── Account management ──────────────────────────────────────────
+account   include   system-auth
+
+# ── Password management ─────────────────────────────────────────
+password  include   system-auth
+
+# ── Session setup ───────────────────────────────────────────────
+session   include   system-auth
+# Unlock KWallet via PAM if kwallet_pam is available
+-session  optional  pam_kwallet5.so auto_start

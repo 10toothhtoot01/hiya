@@ -1,0 +1,4 @@
+[portal]
+DBusName=org.freedesktop.impl.portal.desktop.bioauth
+Interfaces=org.freedesktop.impl.portal.Access;org.freedesktop.impl.portal.WebAuthentication
+UseIn=gnome;kde;sway;hyprland;wlroots

@@ -1,0 +1,62 @@
+[Unit]
+Description=BioAuth Biometric Authentication Daemon
+Documentation=https://github.com/bioauth/bioauth
+After=dbus.service
+Requires=dbus.service
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+[Service]
+Type=dbus
+BusName=org.bioauth.Manager
+ExecStart=/usr/sbin/biometric-authd
+Restart=on-failure
+RestartSec=5
+
+# Security hardening
+User=root
+Group=root
+
+# Filesystem restrictions
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/bioauth
+PrivateTmp=yes
+
+# Device access (need fingerprint USB + TPM)
+DevicePolicy=closed
+DeviceAllow=/dev/tpmrm0 rw
+DeviceAllow=char-usb_device rwm
+# libfprint accesses USB devices via udev/libusb
+SupplementaryGroups=plugdev input
+
+# Network isolation
+PrivateNetwork=yes
+
+# Capability restrictions
+CapabilityBoundingSet=CAP_SETUID CAP_SETGID
+AmbientCapabilities=
+
+# Namespace isolation
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+
+# Misc hardening
+NoNewPrivileges=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+MemoryDenyWriteExecute=yes
+LockPersonality=yes
+RestrictNamespaces=yes
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=biometric-authd
+
+[Install]
+WantedBy=multi-user.target

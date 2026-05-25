@@ -1,0 +1,20 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=BioAuth Phase 2
+Comment=Secure biometric authentication and unified experience
+Exec=@CMAKE_INSTALL_PREFIX@/bin/BioAuthPhase2App
+Icon=bioauth
+Terminal=false
+StartupWMClass=BioAuth Phase 2
+Categories=Security;Utility;
+Keywords=authentication;biometric;fingerprint;password;security;
+Actions=Wizard;SystemTray;
+
+[Desktop Action Wizard]
+Name=Launch Onboarding Wizard
+Exec=@CMAKE_INSTALL_PREFIX@/bin/BioAuthPhase2App --wizard
+
+[Desktop Action SystemTray]
+Name=System Tray Monitor
+Exec=@CMAKE_INSTALL_PREFIX@/bin/BioAuthSystemTray

@@ -1,0 +1,72 @@
+# bioauth-fido2.service — BioAuth FIDO2/CTAP2 Transport Daemon
+#
+# This service provides a Unix domain socket transport for the
+# FIDO2/CTAP2 authenticator. It listens on /run/bioauth/fido2.sock
+# for local CTAP2 commands from browsers and WebAuthn clients.
+#
+# This is a companion to biometric-authd.service (the main daemon).
+#
+# Install:  sudo cp bioauth-fido2.service /usr/lib/systemd/system/
+#           sudo systemctl daemon-reload
+#           sudo systemctl enable --now bioauth-fido2.service
+
+[Unit]
+Description=BioAuth FIDO2/CTAP2 Transport Daemon
+Documentation=https://github.com/bioauth/bioauth
+After=biometric-authd.service
+Requires=biometric-authd.service
+
+[Service]
+Type=notify
+ExecStart=/usr/libexec/bioauth-fido2d
+Restart=on-failure
+RestartSec=5s
+
+# Security hardening
+User=root
+Group=bioauth
+
+# Runtime directory for the socket
+RuntimeDirectory=bioauth
+RuntimeDirectoryMode=0755
+
+# State directory for credentials
+StateDirectory=bioauth/fido2
+StateDirectoryMode=0700
+
+# Socket permissions
+UMask=0117
+
+# Sandboxing
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+NoNewPrivileges=yes
+
+# Allow access to TPM, fingerprint, and UHID devices
+DeviceAllow=/dev/tpmrm0 rw
+DeviceAllow=/dev/uhid rw
+DeviceAllow=char-usb_device rwm
+
+# Capabilities needed
+CapabilityBoundingSet=CAP_SETUID CAP_SETGID
+AmbientCapabilities=
+
+# systemd-journald logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=bioauth-fido2d
+
+[Install]
+WantedBy=multi-user.target

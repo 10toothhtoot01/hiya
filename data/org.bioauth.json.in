@@ -1,0 +1,12 @@
+{
+  "name": "org.bioauth.browser_host",
+  "description": "BioAuth browser integration native host",
+  "path": "@CMAKE_INSTALL_PREFIX@/libexec/bioauth-browser-host",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://replace_with_real_extension_id/"
+  ],
+  "allowed_extensions": [
+    "replace-with-real-extension-id@bioauth"
+  ]
+}

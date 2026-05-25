@@ -1,0 +1,169 @@
+# SELinux policy module for BioAuth biometric authentication daemon
+#
+# File: bioauth.te — Type Enforcement rules
+# Install: semodule -i bioauth.pp (after compilation)
+#
+# Build:
+#   checkmodule -M -m -o bioauth.mod bioauth.te
+#   semodule_package -o bioauth.pp -m bioauth.mod -f bioauth.fc
+#   sudo semodule -i bioauth.pp
+#
+# This policy confines biometric-authd to only the resources it needs:
+#   - TPM device (/dev/tpmrm0)
+#   - USB fingerprint readers (via libusb/libfprint)
+#   - D-Bus system bus (org.bioauth.Manager)
+#   - Journal logging (sd_journal_print)
+#   - State directory (/var/lib/bioauth)
+#   - Config directory (/etc/bioauth)
+#   - PAM module loading
+
+policy_module(bioauth, 1.0.0)
+
+########################################
+# Type declarations
+########################################
+
+# Daemon types
+type bioauth_t;
+type bioauth_exec_t;
+
+# State/config file types
+type bioauth_var_lib_t;
+type bioauth_etc_t;
+type bioauth_runtime_t;
+
+# PAM module type
+type bioauth_pam_t;
+
+# FIDO2 socket type
+type bioauth_fido2_sock_t;
+
+########################################
+# Daemon domain transition
+########################################
+
+# biometric-authd transitions to bioauth_t when executed
+init_daemon_domain(bioauth_t, bioauth_exec_t)
+
+# systemd can manage the daemon
+systemd_service_domain(bioauth_t, bioauth_exec_t)
+
+########################################
+# Core permissions for bioauth_t
+########################################
+
+# Process permissions
+allow bioauth_t self:process { signal sigkill sigstop signull };
+allow bioauth_t self:capability { setuid setgid };
+
+# Filesystem basics
+files_read_etc_files(bioauth_t)
+files_read_usr_files(bioauth_t)
+
+# Read own config files at /etc/bioauth/
+allow bioauth_t bioauth_etc_t:dir { search getattr open read };
+allow bioauth_t bioauth_etc_t:file { read getattr open ioctl lock };
+
+# Read/write state files at /var/lib/bioauth/
+allow bioauth_t bioauth_var_lib_t:dir { search create write add_name remove_name getattr open read };
+allow bioauth_t bioauth_var_lib_t:file { create read write getattr setattr open unlink rename lock ioctl };
+
+# Runtime files at /run/bioauth/
+allow bioauth_t bioauth_runtime_t:dir { search create write add_name remove_name getattr open read };
+allow bioauth_t bioauth_runtime_t:file { create read write getattr setattr open unlink };
+allow bioauth_t bioauth_runtime_t:sock_file { create write unlink setattr getattr };
+
+########################################
+# TPM access
+########################################
+
+# Access /dev/tpmrm0 (TPM2 resource manager)
+dev_read_tpm(bioauth_t)
+dev_write_tpm(bioauth_t)
+
+# Direct device node access
+allow bioauth_t tpm_device_t:chr_file { read write open ioctl getattr };
+
+########################################
+# USB fingerprint reader access
+########################################
+
+# libfprint uses libusb to access fingerprint readers
+dev_read_usbmon(bioauth_t)
+udev_read_runtime_files(bioauth_t)
+
+# USB device access  
+allow bioauth_t usb_device_t:chr_file { read write open ioctl getattr setattr };
+allow bioauth_t usb_device_t:dir { search read getattr open };
+
+########################################
+# D-Bus system bus access
+########################################
+
+# Connect to and use the system D-Bus
+dbus_system_bus_client(bioauth_t)
+dbus_connect_system_bus(bioauth_t)
+
+# Own the org.bioauth.Manager bus name
+gen_require(`
+    class dbus { acquire_svc send_msg };
+')
+allow bioauth_t self:dbus { acquire_svc send_msg };
+
+########################################
+# systemd journal logging
+########################################
+
+# Write to systemd journal
+logging_send_syslog_msg(bioauth_t)
+logging_send_audit_msgs(bioauth_t)
+journalctl_exec(bioauth_t)
+
+# sd_journal_print - connect to /run/systemd/journal/socket
+init_stream_connect(bioauth_t)
+allow bioauth_t init_t:unix_dgram_socket sendto;
+
+########################################
+# PAM module permissions
+########################################
+
+# PAM module loaded by login, sshd, gdm, sudo etc.
+# These are user-context processes that dlopen() pam_bioauth.so
+auth_use_pam(bioauth_t)
+
+# The PAM module connects to D-Bus as a client
+allow bioauth_pam_t self:dbus send_msg;
+dbus_system_bus_client(bioauth_pam_t)
+
+########################################
+# FIDO2 Unix socket
+########################################
+
+# Create and manage /run/bioauth/fido2.sock
+allow bioauth_t bioauth_fido2_sock_t:sock_file { create write unlink setattr getattr };
+allow bioauth_t self:unix_stream_socket { create bind listen accept read write getattr setopt };
+
+########################################
+# Network isolation
+########################################
+
+# biometric-authd has PrivateNetwork=yes, so deny all network access
+# (this is enforced by systemd sandboxing, but belt-and-suspenders)
+
+########################################
+# Memory protections
+########################################
+
+# mlock/munlock for sensitive data (keys, templates)
+allow bioauth_t self:process { setrlimit };
+allow bioauth_t self:capability { ipc_lock };
+
+# madvise(MADV_DONTDUMP)
+allow bioauth_t self:process { dontdump };
+
+########################################
+# Transitional rules for development
+########################################
+
+# These can be removed once the policy is fully tested:
+# dontaudit bioauth_t unconfined_t:process { signal };

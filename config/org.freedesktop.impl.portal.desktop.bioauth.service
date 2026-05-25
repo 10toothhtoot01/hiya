@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=org.freedesktop.impl.portal.desktop.bioauth
+Exec=/usr/libexec/bioauth-portal

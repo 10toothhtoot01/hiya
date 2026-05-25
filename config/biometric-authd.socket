@@ -1,0 +1,43 @@
+# biometric-authd.socket — BioAuth Socket Activation
+#
+# Enables on-demand activation of biometric-authd when a client
+# connects to the Unix domain socket. This is more efficient than
+# keeping the daemon running permanently.
+#
+# Install:  sudo cp biometric-authd.socket /usr/lib/systemd/system/
+#           sudo systemctl enable biometric-authd.socket
+#
+# The daemon will be started automatically on first D-Bus call or
+# socket connection.
+
+[Unit]
+Description=BioAuth Biometric Authentication Socket
+Documentation=man:biometric-authd(8)
+DefaultDependencies=no
+Before=sockets.target
+
+[Socket]
+ListenStream=/run/bioauth/bioauth.sock
+SocketMode=0660
+SocketGroup=input
+DirectoryMode=0750
+
+# Accept connections from the same machine only
+Accept=no
+
+# Limit client rate
+MaxConnections=64
+MaxConnectionsPerSource=8
+
+# Buffer tuning
+ReceiveBuffer=65536
+SendBuffer=65536
+
+# Remove stale socket on start
+RemoveOnStop=yes
+
+# Pass credentials for auth
+PassCredentials=yes
+
+[Install]
+WantedBy=sockets.target

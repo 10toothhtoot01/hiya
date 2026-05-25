@@ -1,0 +1,79 @@
+<!--
+  D-Bus interface for KDE System Settings KCM integration.
+  
+  This interface is exposed on the system bus by the BioAuth daemon
+  and provides a higher-level API specifically designed for KDE
+  System Settings (KCM) fingerprint management modules.
+  
+  The KCM module (kcm_bioauth or the standard kcm_users fingerprint
+  tab) calls these methods to:
+    - List enrolled fingerprints for the current user
+    - Start/cancel enrollment of a new fingerprint
+    - Delete enrolled fingerprints
+    - Query device capabilities and status
+  
+  This supplements the fprintd D-Bus compatibility layer
+  (net.reactivated.Fprint) which KDE already supports natively.
+-->
+<!DOCTYPE node PUBLIC
+  "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+  "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node name="/org/bioauth/Manager">
+  <interface name="org.bioauth.Manager">
+
+    <!-- Device information -->
+    <method name="GetDeviceInfo">
+      <arg name="info" type="a{sv}" direction="out"/>
+      <!-- Returns: {
+             "device_name": s,
+             "driver": s,
+             "has_device": b,
+             "nr_enroll_stages": u,
+             "scan_type": s  ("swipe" or "press")
+           }
+      -->
+    </method>
+
+    <!-- List enrolled fingerprints for calling user -->
+    <method name="ListEnrollments">
+      <arg name="enrollments" type="a(nss)" direction="out"/>
+      <!-- Returns array of (finger_id, label, created_date) -->
+    </method>
+
+    <!-- Start fingerprint enrollment -->
+    <method name="Enroll">
+      <arg name="finger" type="n" direction="in"/>
+      <arg name="label" type="s" direction="in"/>
+      <arg name="success" type="b" direction="out"/>
+    </method>
+
+    <!-- Delete a specific enrollment -->
+    <method name="DeleteEnrollment">
+      <arg name="finger" type="n" direction="in"/>
+      <arg name="success" type="b" direction="out"/>
+    </method>
+
+    <!-- Delete all enrollments for calling user -->
+    <method name="DeleteAllEnrollments">
+      <arg name="success" type="b" direction="out"/>
+    </method>
+
+    <!-- Verify fingerprint (test enrollment) -->
+    <method name="Verify">
+      <arg name="success" type="b" direction="out"/>
+    </method>
+
+    <!-- Signals for enrollment progress -->
+    <signal name="EnrollProgress">
+      <arg name="stage" type="u"/>
+      <arg name="total_stages" type="u"/>
+      <arg name="quality" type="s"/>
+    </signal>
+
+    <signal name="VerifyStatus">
+      <arg name="match" type="b"/>
+      <arg name="finger" type="n"/>
+    </signal>
+
+  </interface>
+</node>
