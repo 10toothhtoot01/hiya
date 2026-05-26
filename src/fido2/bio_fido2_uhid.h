@@ -1,7 +1,7 @@
 /*
  * bio_fido2_uhid.h — CTAPHID Virtual USB Device via /dev/uhid
  *
- * Copyright (C) 2025 BioAuth Project
+ * Copyright (C) 2025 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Creates a virtual USB HID device that browsers (Chrome, Firefox)

@@ -1,7 +1,7 @@
 /*
  * bio_cbor.h — Complete CBOR (RFC 8949) Encoder/Decoder
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Hand-coded from scratch. Implements:

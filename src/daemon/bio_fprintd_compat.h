@@ -1,16 +1,16 @@
 /*
  * bio_fprintd_compat.h — fprintd-compatible D-Bus API Shim
  *
- * Copyright (C) 2025 BioAuth Project
+ * Copyright (C) 2025 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Provides a compatibility layer that exposes the standard fprintd
  * D-Bus interfaces (net.reactivated.Fprint.Manager and
- * net.reactivated.Fprint.Device) on top of the BioAuth daemon.
+ * net.reactivated.Fprint.Device) on top of the Hiya daemon.
  *
  * This enables GDM, GNOME Settings, SDDM, KDE System Settings,
  * and any other application that uses the fprintd API to work
- * transparently with BioAuth.
+ * transparently with Hiya.
  *
  * D-Bus interfaces implemented:
  *   net.reactivated.Fprint.Manager
@@ -39,8 +39,8 @@
  *     - finger-present: b
  *     - finger-needed: b
  *
- * The shim is loaded by biometric-authd and runs within the same
- * process, forwarding calls to the native BioAuth internal API.
+ * The shim is loaded by hiya-authd and runs within the same
+ * process, forwarding calls to the native Hiya internal API.
  *
  * References:
  *   https://fprint.freedesktop.org/fprintd-dev/
@@ -93,7 +93,7 @@ extern "C"
     typedef struct
     {
         GDBusConnection *bus;            /* System bus connection          */
-        struct bio_daemon *daemon;       /* Parent BioAuth daemon          */
+        struct bio_daemon *daemon;       /* Parent Hiya daemon          */
         guint manager_reg;               /* Manager registration id        */
         bio_fprintd_device_t devices[4]; /* Virtual fprintd devices        */
         int num_devices;                 /* Number of active devices       */
@@ -109,7 +109,7 @@ extern "C"
      *
      * @param compat  Compatibility context (caller-allocated, zeroed)
      * @param bus     Active system bus connection
-     * @param daemon  The parent BioAuth daemon context
+     * @param daemon  The parent Hiya daemon context
      * @return 0 on success, negative errno on failure
      */
     int bio_fprintd_compat_init(bio_fprintd_compat_t *compat,

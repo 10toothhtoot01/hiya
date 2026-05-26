@@ -1,7 +1,7 @@
 /*
  * bio_fido2.c — FIDO2/CTAP2 Authenticator Engine (Part 1: Core + GetInfo)
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -21,7 +21,7 @@
 
 /* ── Internal helpers ────────────────────────────────────────── */
 
-static const uint8_t AAGUID[16] = BIOAUTH_AAGUID;
+static const uint8_t AAGUID[16] = HIYA_AAGUID;
 
 /*
  * Build COSE_Key map for P-256 public key:
@@ -412,7 +412,7 @@ int bio_fido2_init(bio_fido2_ctx_t *ctx, const char *path)
     }
     else
     {
-        strncpy(ctx->storage_path, BIOAUTH_STATE_DIR "/fido2",
+        strncpy(ctx->storage_path, HIYA_STATE_DIR "/fido2",
                 sizeof(ctx->storage_path) - 1);
     }
 

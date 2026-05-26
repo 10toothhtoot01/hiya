@@ -1,5 +1,0 @@
-[D-BUS Service]
-Name=org.bioauth.Daemon
-Exec=/usr/sbin/biometric-authd
-User=root
-SystemdService=biometric-authd.service

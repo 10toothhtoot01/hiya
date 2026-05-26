@@ -1,7 +1,7 @@
 /*
  * bio_fingerprint.h — Enhanced Fingerprint Wrapper over libfprint-2
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Wraps libfprint-2 with:

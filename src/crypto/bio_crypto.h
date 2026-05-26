@@ -1,11 +1,11 @@
 /*
  * bio_crypto.h — Unified crypto API wrapping mbedtls
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * All crypto operations delegate to mbedtls with constant-time
- * implementations.  The rest of BioAuth NEVER calls mbedtls directly.
+ * implementations.  The rest of Hiya NEVER calls mbedtls directly.
  */
 
 #ifndef BIO_CRYPTO_H

@@ -1,7 +1,7 @@
 /*
  * pm_password_gen.h - Password generator with configurable policies
  *
- * Copyright (C) 2026 BioAuth Project
+ * Copyright (C) 2026 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 

@@ -1,11 +1,11 @@
 /*
- * pam_bioauth.c — PAM Authentication Module for BioAuth
+ * pam_hiya.c — PAM Authentication Module for Hiya
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Implements pam_sm_authenticate and pam_sm_setcred.
- * Communicates with biometric-authd via system D-Bus.
+ * Communicates with hiya-authd via system D-Bus.
  *
  * Flow:
  *   1. Parse module options (timeout, debug, fallback, try_first)
@@ -14,9 +14,9 @@
  *   4. Connect to system D-Bus
  *   5. Check if the daemon has a fingerprint device
  *   6. Check if the user has enrolled fingers (GetEnrolledFingers)
- *   7. Call org.bioauth.Manager.CreateSession()
+ *   7. Call org.hiya.Manager.CreateSession()
  *   8. Prompt the user to place their finger
- *   9. Call org.bioauth.Manager.Verify(session_token)
+ *   9. Call org.hiya.Manager.Verify(session_token)
  *  10. Return PAM_SUCCESS if match, handle try_first / fallback
  */
 
@@ -38,7 +38,7 @@
 
 #include <gio/gio.h>
 
-#include "pam/pam_bioauth.h"
+#include "pam/pam_hiya.h"
 
 /* ── Logging helpers ─────────────────────────────────────────── */
 
@@ -46,23 +46,23 @@
     do {                                                           \
         if ((cfg)->debug)                                         \
             pam_syslog((pamh), LOG_DEBUG,                         \
-                       "pam_bioauth: " fmt, ##__VA_ARGS__);       \
+                       "pam_hiya: " fmt, ##__VA_ARGS__);       \
     } while (0)
 
 #define pam_err(pamh, fmt, ...)                                   \
     pam_syslog((pamh), LOG_ERR,                                   \
-               "pam_bioauth: " fmt, ##__VA_ARGS__)
+               "pam_hiya: " fmt, ##__VA_ARGS__)
 
 #define pam_inf(pamh, fmt, ...)                                   \
     pam_syslog((pamh), LOG_INFO,                                  \
-               "pam_bioauth: " fmt, ##__VA_ARGS__)
+               "pam_hiya: " fmt, ##__VA_ARGS__)
 
 /* ── Option parsing ──────────────────────────────────────────── */
 
-static void parse_config(pam_bioauth_config_t *cfg,
+static void parse_config(pam_hiya_config_t *cfg,
                           int argc, const char **argv)
 {
-    cfg->timeout_sec = PAM_BIOAUTH_DEFAULT_TIMEOUT;
+    cfg->timeout_sec = PAM_HIYA_DEFAULT_TIMEOUT;
     cfg->debug = false;
     cfg->try_first = false;
     cfg->fallback = true;
@@ -97,7 +97,7 @@ static GDBusConnection *get_system_bus(void)
     if (!conn || err) {
         if (err) {
             /* Log the error before discarding it */
-            syslog(LOG_ERR, "pam_bioauth: D-Bus connect failed: %s",
+            syslog(LOG_ERR, "pam_hiya: D-Bus connect failed: %s",
                    err->message);
             g_error_free(err);
         }
@@ -112,9 +112,9 @@ static bool daemon_has_device(GDBusConnection *conn)
     GError *err = NULL;
     GVariant *result = g_dbus_connection_call_sync(
         conn,
-        "org.bioauth.Manager",
-        "/org/bioauth/Manager",
-        "org.bioauth.Manager",
+        "org.hiya.Manager",
+        "/org/hiya/Manager",
+        "org.hiya.Manager",
         "GetDevices",
         NULL,
         G_VARIANT_TYPE("(a(ssbbn))"),
@@ -142,9 +142,9 @@ static int get_enrolled_count(GDBusConnection *conn, uid_t uid)
     GError *err = NULL;
     GVariant *result = g_dbus_connection_call_sync(
         conn,
-        "org.bioauth.Manager",
-        "/org/bioauth/Manager",
-        "org.bioauth.Manager",
+        "org.hiya.Manager",
+        "/org/hiya/Manager",
+        "org.hiya.Manager",
         "GetEnrolledFingers",
         g_variant_new("(u)", (guint32)uid),
         G_VARIANT_TYPE("(an)"),
@@ -174,9 +174,9 @@ static bool create_session(GDBusConnection *conn,
     GError *err = NULL;
     GVariant *result = g_dbus_connection_call_sync(
         conn,
-        "org.bioauth.Manager",
-        "/org/bioauth/Manager",
-        "org.bioauth.Manager",
+        "org.hiya.Manager",
+        "/org/hiya/Manager",
+        "org.hiya.Manager",
         "CreateSession",
         g_variant_new("(u)", (guint32)target_uid),
         G_VARIANT_TYPE("(ay)"),
@@ -227,9 +227,9 @@ static int call_verify(GDBusConnection *conn,
     GError *err = NULL;
     GVariant *result = g_dbus_connection_call_sync(
         conn,
-        "org.bioauth.Manager",
-        "/org/bioauth/Manager",
-        "org.bioauth.Manager",
+        "org.hiya.Manager",
+        "/org/hiya/Manager",
+        "org.hiya.Manager",
         "Verify",
         params,
         G_VARIANT_TYPE("(b)"),
@@ -238,7 +238,7 @@ static int call_verify(GDBusConnection *conn,
         NULL, &err);
 
     if (!result || err) {
-        syslog(LOG_ERR, "pam_bioauth: Verify D-Bus call failed: %s",
+        syslog(LOG_ERR, "pam_hiya: Verify D-Bus call failed: %s",
                err ? err->message : "null result, no error");
         if (err) g_error_free(err);
         return -1;
@@ -258,7 +258,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh,
                                     int argc,
                                     const char **argv)
 {
-    pam_bioauth_config_t cfg;
+    pam_hiya_config_t cfg;
     parse_config(&cfg, argc, argv);
 
     pam_dbg(pamh, &cfg, "authenticate called (timeout=%d, "
@@ -322,7 +322,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh,
     uint8_t token[32];
     size_t token_len = sizeof(token);
     /* fp_timeout_ms: how long bio_fp_verify runs on the sensor.
-     * dbus_timeout_ms: how long pam_bioauth waits for the D-Bus call.
+     * dbus_timeout_ms: how long pam_hiya waits for the D-Bus call.
      * dbus > fp by 2s so the daemon always cancels fp_device_verify
      * before the D-Bus call times out — this keeps fp_lock from being
      * held after PAM gives up, which caused the stuck-sensor bug. */
@@ -330,7 +330,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh,
     int dbus_timeout_ms = fp_timeout_ms + 2000;
 
     if (!create_session(conn, uid, token, &token_len, dbus_timeout_ms)) {
-        pam_err(pamh, "failed to create BioAuth session");
+        pam_err(pamh, "failed to create Hiya session");
         g_object_unref(conn);
         return cfg.fallback ? PAM_IGNORE : PAM_AUTH_ERR;
     }

@@ -23,7 +23,7 @@ dep_bio_fido2 = declare_dependency(
 
 # ── FIDO2 daemon executable ──────────────────────────────────────
 executable(
-    'bioauth-fido2d',
+    'hiya-fido2d',
     'fido2_main.c',
     include_directories: inc_root,
     dependencies: [dep_systemd, dep_threads, dep_gio, dep_glib],

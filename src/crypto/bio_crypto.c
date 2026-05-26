@@ -1,7 +1,7 @@
 /*
  * bio_crypto.c — Crypto wrapper implementation delegating to mbedtls
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Every function in this file is a thin wrapper around mbedtls.
@@ -62,7 +62,7 @@ static int bio_drbg_random(void *p_rng, unsigned char *output,
 }
 
 /* Personalization string for CTR-DRBG */
-static const char *DRBG_PERS = "bioauth-crypto-v1";
+static const char *DRBG_PERS = "hiya-crypto-v1";
 
 /* ── Lifecycle ─────────────────────────────────────────────────── */
 

@@ -1,7 +1,7 @@
 /*
  * bio_common.c — Common utility implementations
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 

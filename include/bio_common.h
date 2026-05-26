@@ -1,7 +1,7 @@
 /*
- * bio_common.h — Common definitions for BioAuth
+ * bio_common.h — Common definitions for Hiya
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -17,10 +17,10 @@ extern "C" {
 #endif
 
 /* ── Version ──────────────────────────────────────────────────── */
-#define BIOAUTH_VERSION_MAJOR  0
-#define BIOAUTH_VERSION_MINOR  1
-#define BIOAUTH_VERSION_PATCH  0
-#define BIOAUTH_VERSION_STRING "0.1.0"
+#define HIYA_VERSION_MAJOR  0
+#define HIYA_VERSION_MINOR  1
+#define HIYA_VERSION_PATCH  0
+#define HIYA_VERSION_STRING "0.1.0"
 
 /* ── Error codes ──────────────────────────────────────────────── */
 typedef enum {
@@ -191,15 +191,15 @@ void bio_log_auth_event(const char *user, const char *event,
                         const char *result, const char *detail);
 
 /* ── D-Bus constants ──────────────────────────────────────────── */
-#define BIOAUTH_DBUS_NAME       "org.bioauth.Manager"
-#define BIOAUTH_DBUS_PATH       "/org/bioauth/Manager"
-#define BIOAUTH_DBUS_INTERFACE  "org.bioauth.Manager"
+#define HIYA_DBUS_NAME       "org.hiya.Manager"
+#define HIYA_DBUS_PATH       "/org/hiya/Manager"
+#define HIYA_DBUS_INTERFACE  "org.hiya.Manager"
 
 /* ── File system paths ────────────────────────────────────────── */
-#define BIOAUTH_STATE_DIR      "/var/lib/bioauth"
-#define BIOAUTH_CONFIG_DIR     "/etc/bioauth"
-#define BIOAUTH_CONFIG_FILE    "/etc/bioauth/bioauth.conf"
-#define BIOAUTH_RUN_DIR        "/run/bioauth"
+#define HIYA_STATE_DIR      "/var/lib/hiya"
+#define HIYA_CONFIG_DIR     "/etc/hiya"
+#define HIYA_CONFIG_FILE    "/etc/hiya/hiya.conf"
+#define HIYA_RUN_DIR        "/run/hiya"
 
 #ifdef __cplusplus
 }

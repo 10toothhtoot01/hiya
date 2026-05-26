@@ -1,7 +1,7 @@
 /*
  * pm_secure_mem.c - Secure allocation helpers for sensitive data
  *
- * Copyright (C) 2026 BioAuth Project
+ * Copyright (C) 2026 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 

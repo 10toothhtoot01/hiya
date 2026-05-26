@@ -1,7 +1,7 @@
 /*
  * pm_errors.c - Password manager error strings
  *
- * Copyright (C) 2026 BioAuth Project
+ * Copyright (C) 2026 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 

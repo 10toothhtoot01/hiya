@@ -1,7 +1,7 @@
 /*
  * pm_clipboard.c - Clipboard auto-clear scheduler
  *
- * Copyright (C) 2026 BioAuth Project
+ * Copyright (C) 2026 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 

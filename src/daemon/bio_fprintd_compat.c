@@ -1,14 +1,14 @@
 /*
  * bio_fprintd_compat.c — fprintd-compatible D-Bus API Shim
  *
- * Copyright (C) 2025 BioAuth Project
+ * Copyright (C) 2025 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Implements the net.reactivated.Fprint.Manager and
  * net.reactivated.Fprint.Device interfaces, translating calls
- * to the internal BioAuth daemon API.
+ * to the internal Hiya daemon API.
  *
- * This enables GDM, GNOME Settings, SDDM, and KDE to use BioAuth
+ * This enables GDM, GNOME Settings, SDDM, and KDE to use Hiya
  * for fingerprint login without any modifications.
  */
 
@@ -819,7 +819,7 @@ static void device_method_call(GDBusConnection *bus,
             }
         }
 
-        /* Query internal BioAuth daemon enrollment array.
+        /* Query internal Hiya daemon enrollment array.
          * Return a list of fprintd finger names.
          */
         GVariantBuilder builder;

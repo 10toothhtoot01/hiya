@@ -1,7 +1,7 @@
 /*
  * pm_ssh_keys.c - SSH key credential management
  *
- * Copyright (C) 2026 BioAuth Project
+ * Copyright (C) 2026 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -210,8 +210,8 @@ pm_error_t pm_ssh_key_generate(pm_ssh_key_type_t key_type,
     mbedtls_ctr_drbg_init(&ctr_drbg);
 
     ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
-                                (const unsigned char *)"bioauth_ssh_keygen",
-                                strlen("bioauth_ssh_keygen"));
+                                (const unsigned char *)"hiya_ssh_keygen",
+                                strlen("hiya_ssh_keygen"));
     if (ret != 0)
     {
         goto cleanup;
@@ -346,7 +346,7 @@ pm_error_t pm_ssh_key_generate(pm_ssh_key_type_t key_type,
         goto cleanup;
     }
 
-    snprintf(ssh_pub, ssh_pub_len, "%s AAAAB3NzaC1yc2EAAA... bioauth@localhost",
+    snprintf(ssh_pub, ssh_pub_len, "%s AAAAB3NzaC1yc2EAAA... hiya@localhost",
              ssh_key_type_to_string(key_type));
 
     *public_key = (uint8_t *)ssh_pub;
@@ -381,8 +381,8 @@ pm_error_t pm_ssh_key_import_pem(const uint8_t *pem_data, size_t pem_len,
     mbedtls_ctr_drbg_init(&ctr_drbg);
 
     int ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
-                                    (const unsigned char *)"bioauth_ssh_import",
-                                    strlen("bioauth_ssh_import"));
+                                    (const unsigned char *)"hiya_ssh_import",
+                                    strlen("hiya_ssh_import"));
     if (ret != 0)
     {
         goto cleanup;
@@ -555,8 +555,8 @@ pm_error_t pm_ssh_key_validate(const pm_ssh_key_t *ssh_key)
     mbedtls_ctr_drbg_init(&ctr_drbg);
 
     int ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
-                                    (const unsigned char *)"bioauth_ssh_validate",
-                                    strlen("bioauth_ssh_validate"));
+                                    (const unsigned char *)"hiya_ssh_validate",
+                                    strlen("hiya_ssh_validate"));
     if (ret == 0)
     {
         ret = mbedtls_pk_parse_key(&pk, ssh_key->private_key, ssh_key->private_key_len,

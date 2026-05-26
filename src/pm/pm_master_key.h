@@ -1,7 +1,7 @@
 /*
  * pm_master_key.h - Composite master key derivation
  *
- * Copyright (C) 2026 BioAuth Project
+ * Copyright (C) 2026 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 

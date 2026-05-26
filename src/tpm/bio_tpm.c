@@ -1,7 +1,7 @@
 /*
  * bio_tpm.c — TPM 2.0 Direct Interface via /dev/tpmrm0
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Implements raw TPM 2.0 command marshaling and execution.
@@ -265,7 +265,7 @@ int bio_tpm_init(bio_tpm_ctx_t *ctx, const char *device_path)
         return BIO_ERR_INVALID_PARAM;
 
     memset(ctx, 0, sizeof(*ctx));
-    ctx->primary_handle = BIOAUTH_TPM_PRIMARY_HANDLE;
+    ctx->primary_handle = HIYA_TPM_PRIMARY_HANDLE;
 
     const char *path = device_path ? device_path : "/dev/tpmrm0";
     size_t plen = strlen(path);
@@ -1622,7 +1622,7 @@ int bio_tpm_ensure_primary_key(bio_tpm_ctx_t *ctx, uint32_t *handle_out)
     if (primary_handle < TPM2_PERSISTENT_FIRST ||
         primary_handle > TPM2_PERSISTENT_LAST)
     {
-        primary_handle = BIOAUTH_TPM_PRIMARY_HANDLE;
+        primary_handle = HIYA_TPM_PRIMARY_HANDLE;
     }
 
     /* Try to read the persistent handle first */
@@ -1633,13 +1633,13 @@ int bio_tpm_ensure_primary_key(bio_tpm_ctx_t *ctx, uint32_t *handle_out)
     if (ret == BIO_OK)
     {
         *handle_out = primary_handle;
-        BIO_INFO("BioAuth primary key found at 0x%08X",
+        BIO_INFO("Hiya primary key found at 0x%08X",
                  primary_handle);
         return BIO_OK;
     }
 
     /* Not found — create and persist */
-    BIO_INFO("BioAuth primary key not found, creating...");
+    BIO_INFO("Hiya primary key not found, creating...");
 
     uint32_t transient;
     ret = bio_tpm_create_primary(ctx, &transient);
@@ -1655,7 +1655,7 @@ int bio_tpm_ensure_primary_key(bio_tpm_ctx_t *ctx, uint32_t *handle_out)
 
     bio_tpm_flush_context(ctx, transient);
     *handle_out = primary_handle;
-    BIO_INFO("BioAuth primary key created and persisted at 0x%08X",
+    BIO_INFO("Hiya primary key created and persisted at 0x%08X",
              primary_handle);
     return BIO_OK;
 }

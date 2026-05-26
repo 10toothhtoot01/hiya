@@ -1,7 +1,7 @@
 /*
  * pm_vault_store.h - Vault lifecycle and persistence manager
  *
- * Copyright (C) 2026 BioAuth Project
+ * Copyright (C) 2026 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 

@@ -1,7 +1,7 @@
 /*
  * bio_portal.c — XDG Desktop Portal Biometric Provider
  *
- * Copyright (C) 2025 BioAuth Project
+ * Copyright (C) 2025 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Implements the org.freedesktop.impl.portal.Access interface for
@@ -10,11 +10,11 @@
  *
  * When a Flatpak app requests biometric authentication, the desktop
  * portal routes the request through this provider, which displays
- * a fingerprint prompt and communicates with biometric-authd.
+ * a fingerprint prompt and communicates with hiya-authd.
  *
  * D-Bus interface:
  *   Bus:       Session bus
- *   Name:      org.freedesktop.impl.portal.desktop.bioauth
+ *   Name:      org.freedesktop.impl.portal.desktop.hiya
  *   Path:      /org/freedesktop/portal/desktop
  *   Interface: org.freedesktop.impl.portal.Access
  *
@@ -23,7 +23,7 @@
  *                body, options) → response, results
  *
  * The portal provider only activates when the request contains
- * the "bioauth" grant type or when the desktop requests biometric
+ * the "hiya" grant type or when the desktop requests biometric
  * verification for privileged operations.
  */
 
@@ -77,7 +77,7 @@ static const char *PORTAL_XML =
 #define PORTAL_RESPONSE_CANCELLED 1
 #define PORTAL_RESPONSE_OTHER 2
 
-#define BIO_CTAP2_SOCK_PATH "/run/bioauth/fido2.sock"
+#define BIO_CTAP2_SOCK_PATH "/run/hiya/fido2.sock"
 #define BIO_CTAP2_MAX_MSG 4096U
 
 #define CTAP2_CMD_MAKE_CREDENTIAL 0x01
@@ -88,7 +88,7 @@ static const char *PORTAL_XML =
 typedef struct
 {
     GDBusConnection *session_bus;
-    GDBusConnection *system_bus; /* For talking to biometric-authd */
+    GDBusConnection *system_bus; /* For talking to hiya-authd */
     GDBusNodeInfo *node_info;
     guint reg_id_access;
     guint reg_id_webauthn;
@@ -308,7 +308,7 @@ static bool sender_is_desktop_portal_owner(GDBusConnection *conn,
     return ok;
 }
 
-/* ── Internal: call biometric-authd Verify ───────────────────── */
+/* ── Internal: call hiya-authd Verify ───────────────────── */
 
 static bool portal_do_verify(bio_portal_ctx_t *ctx, const char *user)
 {
@@ -320,9 +320,9 @@ static bool portal_do_verify(bio_portal_ctx_t *ctx, const char *user)
 
     GVariant *sess_result = g_dbus_connection_call_sync(
         ctx->system_bus,
-        "org.bioauth.Manager",
-        "/org/bioauth/Manager",
-        "org.bioauth.Manager",
+        "org.hiya.Manager",
+        "/org/hiya/Manager",
+        "org.hiya.Manager",
         "CreateSession",
         NULL,
         G_VARIANT_TYPE("(ay)"),
@@ -346,9 +346,9 @@ static bool portal_do_verify(bio_portal_ctx_t *ctx, const char *user)
 
     GVariant *result = g_dbus_connection_call_sync(
         ctx->system_bus,
-        "org.bioauth.Manager",
-        "/org/bioauth/Manager",
-        "org.bioauth.Manager",
+        "org.hiya.Manager",
+        "/org/hiya/Manager",
+        "org.hiya.Manager",
         "Verify",
         g_variant_new("(@ay)", token),
         G_VARIANT_TYPE("(b)"),
@@ -395,7 +395,7 @@ static void portal_method_call(GDBusConnection *conn,
         g_dbus_method_invocation_return_dbus_error(
             invocation,
             "org.freedesktop.DBus.Error.AccessDenied",
-            "Only org.freedesktop.portal.Desktop may call BioAuth portal methods");
+            "Only org.freedesktop.portal.Desktop may call Hiya portal methods");
         return;
     }
 
@@ -603,7 +603,7 @@ static void portal_method_call(GDBusConnection *conn,
     GVariantBuilder results_builder;
     g_variant_builder_init(&results_builder, G_VARIANT_TYPE("a{sv}"));
     g_variant_builder_add(&results_builder, "{sv}",
-                          "bioauth-verified",
+                          "hiya-verified",
                           g_variant_new_boolean(success));
     if (app_id)
         g_variant_builder_add(&results_builder, "{sv}",
@@ -670,7 +670,7 @@ int bio_portal_init(void)
         return -1;
     }
 
-    /* Connect to system bus (for talking to biometric-authd) */
+    /* Connect to system bus (for talking to hiya-authd) */
     g_portal.system_bus = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &err);
     if (!g_portal.system_bus)
     {
@@ -785,7 +785,7 @@ int bio_portal_init(void)
     /* Own the portal provider name */
     g_portal.name_id = g_bus_own_name_on_connection(
         g_portal.session_bus,
-        "org.freedesktop.impl.portal.desktop.bioauth",
+        "org.freedesktop.impl.portal.desktop.hiya",
         G_BUS_NAME_OWNER_FLAGS_NONE,
         on_portal_name_acquired,
         on_portal_name_lost,

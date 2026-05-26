@@ -1,37 +1,37 @@
-# bioauth-fido2.service — BioAuth FIDO2/CTAP2 Transport Daemon
+# hiya-fido2.service — Hiya FIDO2/CTAP2 Transport Daemon
 #
 # This service provides a Unix domain socket transport for the
-# FIDO2/CTAP2 authenticator. It listens on /run/bioauth/fido2.sock
+# FIDO2/CTAP2 authenticator. It listens on /run/hiya/fido2.sock
 # for local CTAP2 commands from browsers and WebAuthn clients.
 #
-# This is a companion to biometric-authd.service (the main daemon).
+# This is a companion to hiya-authd.service (the main daemon).
 #
-# Install:  sudo cp bioauth-fido2.service /usr/lib/systemd/system/
+# Install:  sudo cp hiya-fido2.service /usr/lib/systemd/system/
 #           sudo systemctl daemon-reload
-#           sudo systemctl enable --now bioauth-fido2.service
+#           sudo systemctl enable --now hiya-fido2.service
 
 [Unit]
-Description=BioAuth FIDO2/CTAP2 Transport Daemon
-Documentation=https://github.com/bioauth/bioauth
-After=biometric-authd.service
-Requires=biometric-authd.service
+Description=Hiya FIDO2/CTAP2 Transport Daemon
+Documentation=https://github.com/hiya/hiya
+After=hiya-authd.service
+Requires=hiya-authd.service
 
 [Service]
 Type=notify
-ExecStart=/usr/libexec/bioauth-fido2d
+ExecStart=/usr/libexec/hiya-fido2d
 Restart=on-failure
 RestartSec=5s
 
 # Security hardening
 User=root
-Group=bioauth
+Group=hiya
 
 # Runtime directory for the socket
-RuntimeDirectory=bioauth
+RuntimeDirectory=hiya
 RuntimeDirectoryMode=0755
 
 # State directory for credentials
-StateDirectory=bioauth/fido2
+StateDirectory=hiya/fido2
 StateDirectoryMode=0700
 
 # Socket permissions
@@ -66,7 +66,7 @@ AmbientCapabilities=
 # systemd-journald logging
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=bioauth-fido2d
+SyslogIdentifier=hiya-fido2d
 
 [Install]
 WantedBy=multi-user.target

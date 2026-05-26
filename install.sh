@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # =============================================================================
-# BioAuth — Universal Installer (FIXED)
+# Hiya — Universal Installer (FIXED)
 #
 # Fixes applied vs original install.sh:
 #   FIX-1: Service unit ExecStart path mismatch
-#          Original: service file hardcodes /usr/sbin/biometric-authd but
+#          Original: service file hardcodes /usr/sbin/hiya-authd but
 #          meson's default prefix is /usr/local, so binary lands at
-#          /usr/local/sbin/biometric-authd → status=203/EXEC at boot.
+#          /usr/local/sbin/hiya-authd → status=203/EXEC at boot.
 #          Fix: force --prefix=/usr in meson setup so binaries and service
 #          unit agree on /usr/sbin. If prefix is overridden, patch the
 #          installed service unit to match before daemon-reload.
@@ -40,9 +40,9 @@ BUILD_DIR="${SCRIPT_DIR}/build"
 INSTALL_PREFIX="/usr"
 
 PAM_DIR="/etc/pam.d"
-BACKUP_SUFFIX=".bioauth-backup"
-STATE_DIR="/var/lib/bioauth"
-RUN_DIR="/run/bioauth"
+BACKUP_SUFFIX=".hiya-backup"
+STATE_DIR="/var/lib/hiya"
+RUN_DIR="/run/hiya"
 
 require_root() {
     [[ $EUID -eq 0 ]] || die "Run as root: sudo ./install_fixed.sh $*"
@@ -158,22 +158,22 @@ install_build_deps() {
     ok "Dependencies installed"
 }
 
-ensure_bioauth_group() {
-    header "Ensuring bioauth group"
-    if ! getent group bioauth &>/dev/null; then
-        groupadd --system bioauth
-        ok "Group 'bioauth' created"
+ensure_hiya_group() {
+    header "Ensuring hiya group"
+    if ! getent group hiya &>/dev/null; then
+        groupadd --system hiya
+        ok "Group 'hiya' created"
     else
-        ok "Group 'bioauth' exists"
+        ok "Group 'hiya' exists"
     fi
     local user
     user=$(get_sudo_user)
     if [[ -n "$user" ]]; then
-        if ! id -nG "$user" | tr ' ' '\n' | grep -qx "bioauth"; then
-            usermod -aG bioauth "$user"
-            warn "Added '${user}' to bioauth group (log out/in required)"
+        if ! id -nG "$user" | tr ' ' '\n' | grep -qx "hiya"; then
+            usermod -aG hiya "$user"
+            warn "Added '${user}' to hiya group (log out/in required)"
         else
-            ok "User '${user}' already in bioauth group"
+            ok "User '${user}' already in hiya group"
         fi
     fi
 }
@@ -185,7 +185,7 @@ ensure_uhid_module() {
     fi
     if [[ -c /dev/uhid ]]; then
         install -d -m 755 /etc/modules-load.d
-        echo "uhid" > /etc/modules-load.d/bioauth.conf
+        echo "uhid" > /etc/modules-load.d/hiya.conf
         ok "uhid: present and configured for boot"
     else
         warn "/dev/uhid missing — browser passkeys will not work"
@@ -228,8 +228,8 @@ detect_pam_libdir() {
     warn "Could not detect PAM security dir — falling back to ${PAM_LIBDIR}"
 }
 
-build_bioauth() {
-    header "Building BioAuth"
+build_hiya() {
+    header "Building Hiya"
 
     detect_pam_libdir
     # libdir is the PARENT of the 'security' folder.
@@ -239,7 +239,7 @@ build_bioauth() {
 
     if [[ -f "${BUILD_DIR}/build.ninja" ]]; then
         info "Build dir exists — rebuilding"
-        touch "${SCRIPT_DIR}/src/daemon/bio_daemon.c" "${SCRIPT_DIR}/src/pam/pam_bioauth.c"
+        touch "${SCRIPT_DIR}/src/daemon/bio_daemon.c" "${SCRIPT_DIR}/src/pam/pam_hiya.c"
         ninja -C "${BUILD_DIR}"
     else
         # Use -Dlibdir only (not --libdir) — passing both causes:
@@ -275,8 +275,8 @@ remove_fprintd() {
 
 install_binaries() {
     # Remove stale binary at /usr/bin if present
-    rm -f /usr/bin/biometric-authd
-    header "Installing BioAuth"
+    rm -f /usr/bin/hiya-authd
+    header "Installing Hiya"
 
     ninja -C "${BUILD_DIR}" install
 
@@ -284,12 +284,12 @@ install_binaries() {
     # meson-setup time, patch the installed service unit's ExecStart to
     # point at wherever the binary actually landed.
     local actual_bin
-    actual_bin=$(find /usr/sbin /usr/local/sbin -name "biometric-authd" 2>/dev/null | head -1)
+    actual_bin=$(find /usr/sbin /usr/local/sbin -name "hiya-authd" 2>/dev/null | head -1)
     local installed_svc=""
     for svc_path in /usr/lib/systemd/system /usr/local/lib/systemd/system \
                     /lib/systemd/system; do
-        if [[ -f "${svc_path}/biometric-authd.service" ]]; then
-            installed_svc="${svc_path}/biometric-authd.service"
+        if [[ -f "${svc_path}/hiya-authd.service" ]]; then
+            installed_svc="${svc_path}/hiya-authd.service"
             break
         fi
     done
@@ -304,9 +304,9 @@ install_binaries() {
         fi
     fi
 
-    install -d -m 750 -o root -g bioauth "${STATE_DIR}"
-    install -d -m 750 -o root -g bioauth "${STATE_DIR}/fido2"
-    install -d -m 755 -o root -g bioauth "${RUN_DIR}"
+    install -d -m 750 -o root -g hiya "${STATE_DIR}"
+    install -d -m 750 -o root -g hiya "${STATE_DIR}/fido2"
+    install -d -m 755 -o root -g hiya "${RUN_DIR}"
 
     dbus-send --system --type=method_call --dest=org.freedesktop.DBus \
         / org.freedesktop.DBus.ReloadConfig 2>/dev/null || true
@@ -319,9 +319,9 @@ install_binaries() {
 # PAM line: success=done means fingerprint matched → skip remaining auth modules
 # (no password needed). default=ignore means any failure → fall through to
 # next module (password prompt). No try_first — we never block on fingerprint.
-PAM_BIOAUTH_LINE='auth  [success=done new_authtok_reqd=done default=ignore]  pam_bioauth.so timeout=15'
+PAM_HIYA_LINE='auth  [success=done new_authtok_reqd=done default=ignore]  pam_hiya.so timeout=15'
 
-# Insert the bioauth line into a PAM file correctly, handling every case:
+# Insert the hiya line into a PAM file correctly, handling every case:
 #
 #  Case A — file has a standalone auth line (not just includes):
 #            Insert BEFORE the first auth line so fingerprint runs first.
@@ -334,19 +334,19 @@ PAM_BIOAUTH_LINE='auth  [success=done new_authtok_reqd=done default=ignore]  pam
 #            Append at end (rare, but safe).
 #
 # In all cases, skip if already configured.
-insert_pam_bioauth() {
+insert_pam_hiya() {
     local target="$1"
     [[ -f "$target" ]] || return 0
-    if grep -q "pam_bioauth" "$target" 2>/dev/null; then
+    if grep -q "pam_hiya" "$target" 2>/dev/null; then
         ok "  $(basename $target): already configured"
         return 0
     fi
     [[ ! -f "${target}${BACKUP_SUFFIX}" ]] && cp -a "$target" "${target}${BACKUP_SUFFIX}"
     # Insert before first auth line (real module or include)
-    sed -i "0,/^auth/{/^auth/i ${PAM_BIOAUTH_LINE}
+    sed -i "0,/^auth/{/^auth/i ${PAM_HIYA_LINE}
 }" "$target"
     chmod 644 "$target"
-    ok "  $(basename $target): BioAuth fingerprint auth added"
+    ok "  $(basename $target): Hiya fingerprint auth added"
 }
 
 wire_pam() {
@@ -354,29 +354,29 @@ wire_pam() {
     # Patch every PAM file that has auth lines — distro-agnostic
     for f in "${PAM_DIR}"/*; do
         [[ -f "$f" ]] || continue
-        [[ "$f" == *.bioauth-backup ]] && continue
-        [[ "$(basename $f)" == "bioauth" ]] && continue
+        [[ "$f" == *.hiya-backup ]] && continue
+        [[ "$(basename $f)" == "hiya" ]] && continue
         grep -q "^auth" "$f" 2>/dev/null || continue
-        insert_pam_bioauth "$f"
+        insert_pam_hiya "$f"
     done
     ok "PAM configuration complete"
 }
 
 
 start_services() {
-    header "Starting BioAuth services"
+    header "Starting Hiya services"
     systemctl daemon-reload
-    systemctl enable --now biometric-authd.service
-    ok "biometric-authd: started and enabled"
-    systemctl enable --now bioauth-fido2.service
-    ok "bioauth-fido2: started and enabled"
+    systemctl enable --now hiya-authd.service
+    ok "hiya-authd: started and enabled"
+    systemctl enable --now hiya-fido2.service
+    ok "hiya-fido2: started and enabled"
 
     local user
     user=$(get_sudo_user)
     if [[ -n "$user" ]]; then
-        systemctl --user -M "${user}@" enable bioauth-portal.service 2>/dev/null || \
-        sudo -u "$user" systemctl --user enable bioauth-portal.service 2>/dev/null || \
-        warn "Could not enable bioauth-portal for ${user} — run manually as ${user}"
+        systemctl --user -M "${user}@" enable hiya-portal.service 2>/dev/null || \
+        sudo -u "$user" systemctl --user enable hiya-portal.service 2>/dev/null || \
+        warn "Could not enable hiya-portal for ${user} — run manually as ${user}"
     fi
 }
 
@@ -384,18 +384,18 @@ verify_install() {
     header "Verifying installation"
     local all_ok=true
 
-    if systemctl is-active --quiet biometric-authd.service; then
-        ok "biometric-authd: running"
+    if systemctl is-active --quiet hiya-authd.service; then
+        ok "hiya-authd: running"
     else
-        error "biometric-authd: NOT running"
-        journalctl -u biometric-authd --no-pager -n 20
+        error "hiya-authd: NOT running"
+        journalctl -u hiya-authd --no-pager -n 20
         all_ok=false
     fi
 
-    if systemctl is-active --quiet bioauth-fido2.service; then
-        ok "bioauth-fido2: running"
+    if systemctl is-active --quiet hiya-fido2.service; then
+        ok "hiya-fido2: running"
     else
-        error "bioauth-fido2: NOT running"
+        error "hiya-fido2: NOT running"
         all_ok=false
     fi
 
@@ -403,9 +403,9 @@ verify_install() {
 
     local user; user=$(get_sudo_user)
     if [[ -n "$user" ]]; then
-        id -nG "$user" | tr ' ' '\n' | grep -qx "bioauth" \
-            && ok "User '${user}': in bioauth group" \
-            || warn "User '${user}' not in bioauth group (log out/in)"
+        id -nG "$user" | tr ' ' '\n' | grep -qx "hiya" \
+            && ok "User '${user}': in hiya group" \
+            || warn "User '${user}' not in hiya group (log out/in)"
     fi
 
     if gdbus introspect --system \
@@ -418,7 +418,7 @@ verify_install() {
     fi
 
     local pam_so
-    pam_so=$(find /usr/lib /usr/lib64 /lib /lib64 -name "pam_bioauth.so" 2>/dev/null | head -1)
+    pam_so=$(find /usr/lib /usr/lib64 /lib /lib64 -name "pam_hiya.so" 2>/dev/null | head -1)
     [[ -n "$pam_so" ]] && ok "PAM module: ${pam_so}" || { error "PAM module: not found"; all_ok=false; }
 
     echo
@@ -429,30 +429,30 @@ print_next_steps() {
     local user; user=$(get_sudo_user)
     echo
     echo -e "${BOLD}${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BOLD}  BioAuth installed. Next: enroll your fingerprint.${NC}"
+    echo -e "${BOLD}  Hiya installed. Next: enroll your fingerprint.${NC}"
     echo -e "${BOLD}${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo
     echo -e "  ${BOLD}1. Enroll fingerprint (run as yourself, not root):${NC}"
-    echo -e "     ${CYAN}bioauth-enroll --finger 2 --label 'right index'${NC}"
+    echo -e "     ${CYAN}hiya-enroll --finger 2 --label 'right index'${NC}"
     echo -e "     (1=left-thumb  2=left-index  3=left-middle ... 10=right-little)"
     echo
     echo -e "  ${BOLD}NOTE for Goodix MOC / any on-chip storage sensor:${NC}"
     echo -e "     If enrollment fails with 'already enrolled', clear the sensor first:"
     echo -e "     ${CYAN}sudo dbus-send --system --print-reply \\"
-    echo -e "       --dest=org.bioauth.Manager /org/bioauth/Manager \\"
-    echo -e "       org.bioauth.Manager.ClearDevice${NC}"
+    echo -e "       --dest=org.hiya.Manager /org/hiya/Manager \\"
+    echo -e "       org.hiya.Manager.ClearDevice${NC}"
     echo -e "     Then re-enroll. The daemon now does this automatically on retry."
     echo
     echo -e "  ${BOLD}2. Test:${NC}"
-    echo -e "     ${CYAN}bioauth-verify${NC}       ← raw verify"
+    echo -e "     ${CYAN}hiya-verify${NC}       ← raw verify"
     echo -e "     ${CYAN}sudo -k && sudo ls${NC}   ← test PAM sudo"
     echo
-    echo -e "  ${BOLD}Logs:${NC}  journalctl -u biometric-authd -f"
+    echo -e "  ${BOLD}Logs:${NC}  journalctl -u hiya-authd -f"
     echo
 }
 
 do_enroll() {
-    echo -e "${BOLD}BioAuth Fingerprint Enrollment${NC}"
+    echo -e "${BOLD}Hiya Fingerprint Enrollment${NC}"
     echo
     echo "Finger map:  1=left-thumb  2=left-index  3=left-middle  4=left-ring  5=left-little"
     echo "             6=right-thumb 7=right-index 8=right-middle 9=right-ring 10=right-little"
@@ -461,48 +461,48 @@ do_enroll() {
     finger="${finger:-2}"
     read -rp "Label [right index]: " label
     label="${label:-right index}"
-    bioauth-enroll --finger "$finger" --label "$label"
+    hiya-enroll --finger "$finger" --label "$label"
 }
 
 do_status() {
-    header "BioAuth Status"
-    for svc in biometric-authd bioauth-fido2; do
+    header "Hiya Status"
+    for svc in hiya-authd hiya-fido2; do
         local status
         status=$(systemctl is-active "$svc" 2>/dev/null || echo "inactive")
         [[ "$status" == "active" ]] && ok "${svc}: running" || warn "${svc}: ${status}"
     done
     echo
     echo "Enrolled fingers (current user):"
-    bioauth-enroll --list 2>/dev/null || echo "  (not enrolled or daemon not running)"
+    hiya-enroll --list 2>/dev/null || echo "  (not enrolled or daemon not running)"
 }
 
 do_uninstall() {
-    header "Uninstalling BioAuth"
+    header "Uninstalling Hiya"
     require_root uninstall
-    systemctl stop bioauth-fido2.service 2>/dev/null || true
+    systemctl stop hiya-fido2.service 2>/dev/null || true
 
     # Clear on-chip templates BEFORE stopping daemon (MOC sensors like Goodix
     # store templates on-chip; leaving them causes "already enrolled" on reinstall)
-    if systemctl is-active --quiet biometric-authd.service 2>/dev/null; then
+    if systemctl is-active --quiet hiya-authd.service 2>/dev/null; then
         dbus-send --system --print-reply \
-            --dest=org.bioauth.Manager /org/bioauth/Manager \
-            org.bioauth.Manager.ClearDevice 2>/dev/null && \
+            --dest=org.hiya.Manager /org/hiya/Manager \
+            org.hiya.Manager.ClearDevice 2>/dev/null && \
             ok "Cleared on-chip fingerprint templates" || \
             warn "Could not clear on-chip templates (non-storage device or unavailable)"
     fi
 
-    systemctl stop biometric-authd.service 2>/dev/null || true
-    systemctl disable bioauth-fido2.service biometric-authd.service 2>/dev/null || true
+    systemctl stop hiya-authd.service 2>/dev/null || true
+    systemctl disable hiya-fido2.service hiya-authd.service 2>/dev/null || true
     ok "Stopped and disabled services"
 
     # Delete fingerprint enrollment data but KEEP FIDO2/SSH credentials
     # (passkeys and SSH keys are tied to external services — deleting them
     # would invalidate GitHub passkeys, SSH keys, etc.)
-    if [[ -d /var/lib/bioauth ]]; then
-        rm -rf /var/lib/bioauth/users
-        rm -f /var/lib/bioauth/enrollment_hmac.key
+    if [[ -d /var/lib/hiya ]]; then
+        rm -rf /var/lib/hiya/users
+        rm -f /var/lib/hiya/enrollment_hmac.key
         ok "Deleted fingerprint enrollment data"
-        ok "Preserved FIDO2/SSH credentials (/var/lib/bioauth/fido2)"
+        ok "Preserved FIDO2/SSH credentials (/var/lib/hiya/fido2)"
     fi
 
     # Restore PAM backups first
@@ -511,12 +511,12 @@ do_uninstall() {
         mv "$f" "${f%${BACKUP_SUFFIX}}"
         ok "Restored: ${f%${BACKUP_SUFFIX}}"
     done
-    # Remove bioauth lines from ALL pam files (catches files with no backup)
+    # Remove hiya lines from ALL pam files (catches files with no backup)
     for f in "${PAM_DIR}"/*; do
         [[ -f "$f" ]] || continue
-        [[ "$f" == *.bioauth-backup ]] && continue
-        grep -q "pam_bioauth" "$f" 2>/dev/null || continue
-        sed -i '/pam_bioauth/d;/BioAuth fingerprint/d' "$f"
+        [[ "$f" == *.hiya-backup ]] && continue
+        grep -q "pam_hiya" "$f" 2>/dev/null || continue
+        sed -i '/pam_hiya/d;/Hiya fingerprint/d' "$f"
         ok "Cleaned: $(basename $f)"
     done
     # Delete leftover backups so next install starts clean
@@ -529,7 +529,7 @@ do_uninstall() {
     [[ -f "${BUILD_DIR}/meson-info/intro-targets.json" ]] && \
         ninja -C "${BUILD_DIR}" uninstall 2>/dev/null || \
         warn "meson uninstall not available"
-    ok "BioAuth removed."
+    ok "Hiya removed."
 }
 
 
@@ -539,14 +539,14 @@ main() {
         install)
             require_root install
             echo
-            echo -e "${BOLD}${CYAN}  BioAuth — Fixed Installer${NC}"
+            echo -e "${BOLD}${CYAN}  Hiya — Fixed Installer${NC}"
             echo
             detect_distro
             detect_de
             install_build_deps
-            build_bioauth
+            build_hiya
             remove_fprintd
-            ensure_bioauth_group
+            ensure_hiya_group
             ensure_uhid_module
             install_binaries
             wire_pam

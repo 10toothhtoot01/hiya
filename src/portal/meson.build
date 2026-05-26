@@ -14,7 +14,7 @@ lib_bio_portal = static_library(
 
 # Portal daemon executable
 executable(
-    'bioauth-portal',
+    'hiya-portal',
     'portal_main.c',
     include_directories: inc_root,
     dependencies: [dep_glib, dep_gio],

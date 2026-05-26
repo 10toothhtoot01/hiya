@@ -1,11 +1,11 @@
 /*
- * bioauth_verify.c — CLI Verification Test Tool
+ * hiya_verify.c — CLI Verification Test Tool
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Usage:
- *   bioauth-verify
+ *   hiya-verify
  *
  * Creates a session, triggers verification, prints result.
  * Useful for testing fingerprint auth outside of PAM.
@@ -36,9 +36,9 @@ int main(int argc, char **argv)
     /* Step 1: Create session */
     GVariant *result = g_dbus_connection_call_sync(
         conn,
-        "org.bioauth.Manager",
-        "/org/bioauth/Manager",
-        "org.bioauth.Manager",
+        "org.hiya.Manager",
+        "/org/hiya/Manager",
+        "org.hiya.Manager",
         "CreateSession",
         NULL,
         G_VARIANT_TYPE("(ay)"),
@@ -62,9 +62,9 @@ int main(int argc, char **argv)
     /* Step 2: Verify */
     result = g_dbus_connection_call_sync(
         conn,
-        "org.bioauth.Manager",
-        "/org/bioauth/Manager",
-        "org.bioauth.Manager",
+        "org.hiya.Manager",
+        "/org/hiya/Manager",
+        "org.hiya.Manager",
         "Verify",
         g_variant_new("(@ay)", token_var),
         G_VARIANT_TYPE("(b)"),

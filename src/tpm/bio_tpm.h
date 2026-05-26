@@ -1,7 +1,7 @@
 /*
  * bio_tpm.h — Direct TPM 2.0 Interface via /dev/tpmrm0
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Hand-coded TPM 2.0 command marshaling/unmarshaling.
@@ -98,9 +98,9 @@ extern "C"
 #define TPM2_PERSISTENT_FIRST 0x81000000
 #define TPM2_PERSISTENT_LAST 0x81FFFFFF
 
-/* BioAuth persistent handles */
-#define BIOAUTH_TPM_PRIMARY_HANDLE 0x81000100 /* Our primary key */
-#define BIOAUTH_TPM_TEMPLATE_BASE 0x81000101  /* Per-user template keys start */
+/* Hiya persistent handles */
+#define HIYA_TPM_PRIMARY_HANDLE 0x81000100 /* Our primary key */
+#define HIYA_TPM_TEMPLATE_BASE 0x81000101  /* Per-user template keys start */
 
 /* Buffer limits */
 #define TPM2_MAX_COMMAND_SIZE 4096
@@ -115,7 +115,7 @@ extern "C"
         int fd; /* File descriptor for /dev/tpmrm0 */
         bool is_open;
         char device_path[64];    /* e.g. "/dev/tpmrm0" */
-        uint32_t primary_handle; /* Persistent parent handle for BioAuth keys */
+        uint32_t primary_handle; /* Persistent parent handle for Hiya keys */
 
         /* Command buffer — reused between calls */
         uint8_t cmd_buf[TPM2_MAX_COMMAND_SIZE];
@@ -160,7 +160,7 @@ extern "C"
     int bio_tpm_init(bio_tpm_ctx_t *ctx, const char *device_path);
 
     /**
-     * Override the persistent primary handle used by BioAuth convenience
+     * Override the persistent primary handle used by Hiya convenience
      * seal/unseal APIs. Must be in TPM2 persistent handle range.
      */
     int bio_tpm_set_primary_handle(bio_tpm_ctx_t *ctx, uint32_t handle);
@@ -204,7 +204,7 @@ extern "C"
 
     /**
      * TPM2_CreatePrimary: Create a primary key in the owner hierarchy.
-     * Creates an ECC P-256 primary key for BioAuth.
+     * Creates an ECC P-256 primary key for Hiya.
      *
      * @param ctx           TPM context
      * @param handle_out    Receives the transient handle of created key
@@ -411,7 +411,7 @@ extern "C"
                         uint8_t *out, uint16_t len, uint16_t offset);
 
     /**
-     * Seal data with PCR binding under the BioAuth primary key.
+     * Seal data with PCR binding under the Hiya primary key.
      * Like bio_tpm_seal_for_user but binds to a PCR index.
      *
      * Note: auth_len must be 0 for this API. PCR mode currently uses
@@ -437,7 +437,7 @@ extern "C"
                                     uint8_t *data, size_t *data_len);
 
     /**
-     * Ensure BioAuth's primary key exists.
+     * Ensure Hiya's primary key exists.
      * If already persistent, loads it. Otherwise creates and persists.
      *
      * @param ctx           TPM context
@@ -446,7 +446,7 @@ extern "C"
     int bio_tpm_ensure_primary_key(bio_tpm_ctx_t *ctx, uint32_t *handle_out);
 
     /**
-     * Seal data under the BioAuth primary key.
+     * Seal data under the Hiya primary key.
      * Combines Create + flush of unseeded result.
      */
     int bio_tpm_seal_for_user(bio_tpm_ctx_t *ctx,

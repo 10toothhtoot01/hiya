@@ -1,4 +1,4 @@
-project('bioauth', ['c', 'cpp'],
+project('hiya', ['c', 'cpp'],
   version : '0.2.0',
   default_options : [
     'c_std=gnu11',
@@ -100,4 +100,4 @@ subdir('src/ssh')
 subdir('config')
 
 # ── Public headers (for devel package) ───────────────────────────
-install_headers('include/bio_common.h', subdir: 'bioauth')
+install_headers('include/bio_common.h', subdir: 'hiya')

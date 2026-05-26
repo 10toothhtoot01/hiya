@@ -1,7 +1,7 @@
 /*
  * bio_cbor_ctap2.c — CTAP2 Canonical CBOR Utilities
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Implements CTAP2 canonical CBOR map key sorting and

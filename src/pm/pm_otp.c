@@ -1,7 +1,7 @@
 /*
  * pm_otp.c - TOTP/HOTP RFC 6238/4226 implementation
  *
- * Copyright (C) 2026 BioAuth Project
+ * Copyright (C) 2026 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 

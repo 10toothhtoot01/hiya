@@ -1,7 +1,7 @@
 /*
- * portal_main.c — BioAuth XDG Desktop Portal Entry Point
+ * portal_main.c — Hiya XDG Desktop Portal Entry Point
  *
- * Copyright (C) 2025 BioAuth Project
+ * Copyright (C) 2025 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     sigaction(SIGINT, &sa, NULL);
 
     if (bio_portal_init() != 0) {
-        fprintf(stderr, "bioauth-portal: init failed\n");
+        fprintf(stderr, "hiya-portal: init failed\n");
         return 1;
     }
 

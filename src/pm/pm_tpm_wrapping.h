@@ -1,7 +1,7 @@
 /*
  * pm_tpm_wrapping.h - TPM-sealed wrapping key for biometric vault unlock
  *
- * Copyright (C) 2026 BioAuth Project
+ * Copyright (C) 2026 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 

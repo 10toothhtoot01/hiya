@@ -1,11 +1,11 @@
 <!--
   D-Bus interface for KDE System Settings KCM integration.
   
-  This interface is exposed on the system bus by the BioAuth daemon
+  This interface is exposed on the system bus by the Hiya daemon
   and provides a higher-level API specifically designed for KDE
   System Settings (KCM) fingerprint management modules.
   
-  The KCM module (kcm_bioauth or the standard kcm_users fingerprint
+  The KCM module (kcm_hiya or the standard kcm_users fingerprint
   tab) calls these methods to:
     - List enrolled fingerprints for the current user
     - Start/cancel enrollment of a new fingerprint
@@ -18,8 +18,8 @@
 <!DOCTYPE node PUBLIC
   "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
   "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
-<node name="/org/bioauth/Manager">
-  <interface name="org.bioauth.Manager">
+<node name="/org/hiya/Manager">
+  <interface name="org.hiya.Manager">
 
     <!-- Device information -->
     <method name="GetDeviceInfo">

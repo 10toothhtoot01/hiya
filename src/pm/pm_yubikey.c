@@ -5,7 +5,7 @@
  * Dependencies required: libykpers-1 (ykpers), libusb-1.0
  * Until these are linked, hardware-facing operations return PM_ERR_UNSUPPORTED.
  *
- * Copyright (C) 2026 BioAuth Project
+ * Copyright (C) 2026 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 

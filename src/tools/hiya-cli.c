@@ -5,15 +5,15 @@
 #include <gio/gio.h>
 
 void show_status(GDBusConnection *conn) {
-    printf("BioAuth CLI Parity Interface\n");
+    printf("Hiya CLI Parity Interface\n");
     printf("Status: Connected to system D-Bus\n");
     
     // Ping daemon
     GError *err = NULL;
     GVariant *res = g_dbus_connection_call_sync(
         conn,
-        "org.bioauth.System",
-        "/org/bioauth/System",
+        "org.hiya.System",
+        "/org/hiya/System",
         "org.freedesktop.DBus.Peer",
         "Ping",
         NULL,
@@ -34,7 +34,7 @@ void show_status(GDBusConnection *conn) {
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        fprintf(stderr, "Usage: bioauth-cli [status|search|show|save|lock|unlock]\n");
+        fprintf(stderr, "Usage: hiya-cli [status|search|show|save|lock|unlock]\n");
         return 1;
     }
 

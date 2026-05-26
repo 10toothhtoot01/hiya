@@ -1,7 +1,7 @@
 /*
  * bio_fido2.h — FIDO2/CTAP2 Authenticator Engine
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Implements a CTAP2 authenticator (platform authenticator) that:
@@ -117,7 +117,7 @@
 #define CTAP2_PIN_PERM_AUTHNR_CFG 0x20
 
 /* Our authenticator's AAGUID (16 bytes, unique identifier) */
-#define BIOAUTH_AAGUID                               \
+#define HIYA_AAGUID                               \
     {0xb1, 0x0a, 0x07, 0x42, 0xfe, 0xed, 0x43, 0x21, \
      0x90, 0xab, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55}
 
@@ -238,7 +238,7 @@ typedef struct bio_fido2_ctx
  * Initialize the FIDO2 authenticator context.
  * Loads stored credentials from disk if present.
  * @param ctx     Authenticator context to initialize
- * @param path    Storage directory (e.g., /var/lib/bioauth/fido2)
+ * @param path    Storage directory (e.g., /var/lib/hiya/fido2)
  * @return BIO_OK on success
  */
 int bio_fido2_init(bio_fido2_ctx_t *ctx, const char *path);
@@ -325,11 +325,11 @@ bool bio_fido2_wrap_key_valid(void);
  * Frame format (response):
  *   [1 byte: status] [2 bytes: payload_len (BE)] [payload_len bytes: CBOR]
  *
- * The socket path defaults to /run/bioauth/fido2.sock.
+ * The socket path defaults to /run/hiya/fido2.sock.
  */
 
-#define BIOAUTH_FIDO2_SOCK_PATH "/run/bioauth/fido2.sock"
-#define BIOAUTH_FIDO2_MAX_MSG 4096
+#define HIYA_FIDO2_SOCK_PATH "/run/hiya/fido2.sock"
+#define HIYA_FIDO2_MAX_MSG 4096
 
 typedef struct
 {

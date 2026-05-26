@@ -1,7 +1,7 @@
 /*
  * bio_cbor_decoder.c — CBOR Decoder (RFC 8949)
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Zero-copy, cursor-based decoder. Byte strings and text strings

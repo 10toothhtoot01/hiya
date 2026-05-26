@@ -4,22 +4,22 @@
  "http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
 
 <!--
-  PolicyKit policy definitions for BioAuth biometric authentication.
+  PolicyKit policy definitions for Hiya biometric authentication.
 
-  Install to: /usr/share/polkit-1/actions/org.bioauth.policy
+  Install to: /usr/share/polkit-1/actions/org.hiya.policy
 
-  These actions control access to privileged BioAuth operations.
+  These actions control access to privileged Hiya operations.
   Regular fingerprint verification uses PAM and does not need polkit.
 -->
 
 <policyconfig>
 
-  <vendor>BioAuth Project</vendor>
-  <vendor_url>https://github.com/bioauth/bioauth</vendor_url>
+  <vendor>Hiya Project</vendor>
+  <vendor_url>https://github.com/hiya/hiya</vendor_url>
   <icon_name>fingerprint-gui</icon_name>
 
   <!-- ── Enroll a fingerprint for yourself ───────────────────── -->
-  <action id="org.bioauth.enroll-self">
+  <action id="org.hiya.enroll-self">
     <description>Enroll a fingerprint</description>
     <description xml:lang="en">Enroll a fingerprint for your own account</description>
     <message>Authentication is required to enroll a fingerprint</message>
@@ -32,7 +32,7 @@
   </action>
 
   <!-- ── Enroll a fingerprint for another user ───────────────── -->
-  <action id="org.bioauth.enroll-other">
+  <action id="org.hiya.enroll-other">
     <description>Enroll a fingerprint for another user</description>
     <description xml:lang="en">Enroll a fingerprint for another user's account</description>
     <message>Administrator authentication is required to enroll a fingerprint for another user</message>
@@ -44,7 +44,7 @@
   </action>
 
   <!-- ── Delete a fingerprint enrollment ─────────────────────── -->
-  <action id="org.bioauth.delete-enrollment">
+  <action id="org.hiya.delete-enrollment">
     <description>Delete a fingerprint enrollment</description>
     <description xml:lang="en">Delete a stored fingerprint enrollment</description>
     <message>Authentication is required to delete a fingerprint enrollment</message>
@@ -56,7 +56,7 @@
   </action>
 
   <!-- ── Delete another user's enrollment ────────────────────── -->
-  <action id="org.bioauth.delete-enrollment-other">
+  <action id="org.hiya.delete-enrollment-other">
     <description>Delete another user's fingerprint enrollment</description>
     <description xml:lang="en">Delete another user's stored fingerprint enrollment</description>
     <message>Administrator authentication is required to delete another user's fingerprint enrollment</message>
@@ -68,10 +68,10 @@
   </action>
 
   <!-- ── Manage daemon configuration ─────────────────────────── -->
-  <action id="org.bioauth.manage-config">
-    <description>Manage BioAuth configuration</description>
-    <description xml:lang="en">Change BioAuth daemon configuration settings</description>
-    <message>Administrator authentication is required to change BioAuth settings</message>
+  <action id="org.hiya.manage-config">
+    <description>Manage Hiya configuration</description>
+    <description xml:lang="en">Change Hiya daemon configuration settings</description>
+    <message>Administrator authentication is required to change Hiya settings</message>
     <defaults>
       <allow_any>auth_admin</allow_any>
       <allow_inactive>auth_admin</allow_inactive>
@@ -80,7 +80,7 @@
   </action>
 
   <!-- ── View device status (low privilege) ──────────────────── -->
-  <action id="org.bioauth.device-info">
+  <action id="org.hiya.device-info">
     <description>View fingerprint device information</description>
     <description xml:lang="en">View information about connected fingerprint devices</description>
     <message>Authentication is required to view fingerprint device information</message>

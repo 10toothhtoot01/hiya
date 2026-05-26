@@ -1,7 +1,7 @@
 /*
  * bio_fingerprint.c — Enhanced Fingerprint Wrapper Implementation
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Wraps libfprint-2 GObject-based API with our clean C interface.
@@ -445,7 +445,7 @@ int bio_fp_enroll(bio_fp_device_t *dev,
     /* Create a template print for enrollment */
     FpPrint *template_print = fp_print_new(dev->fp_dev);
     fp_print_set_finger(template_print, (FpFinger)finger);
-    fp_print_set_username(template_print, "bioauth");
+    fp_print_set_username(template_print, "hiya");
 
     GMainLoop *loop = g_main_loop_new(NULL, FALSE);
     bio_fp_async_data_t async = {

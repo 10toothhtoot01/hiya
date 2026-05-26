@@ -1,4 +1,4 @@
-# BioAuth
+# Hiya
 
 Fingerprint authentication for Linux. Handles sudo, su, polkit, screen unlock, SSH keys, and browser passkeys from a single enrollment.
 
@@ -21,8 +21,8 @@ Installs build dependencies, compiles, wires PAM, starts the daemon.
 Then enroll (as yourself, not root):
 
 ```bash
-bioauth-enroll --finger 2 --label "right index"
-bioauth-verify
+hiya-enroll --finger 2 --label "right index"
+hiya-verify
 sudo -k && sudo whoami
 ```
 
@@ -34,27 +34,27 @@ Finger numbers: 1–5 = left thumb to little, 6–10 = right thumb to little.
 sudo ./install.sh uninstall
 ```
 
-Clears on-chip templates and removes enrollment data. FIDO2 credentials and SSH keys in `/var/lib/bioauth/fido2/` are kept. To wipe those too:
+Clears on-chip templates and removes enrollment data. FIDO2 credentials and SSH keys in `/var/lib/hiya/fido2/` are kept. To wipe those too:
 
 ```bash
-sudo rm -rf /var/lib/bioauth
+sudo rm -rf /var/lib/hiya
 ```
 
 ## Commands
 
 ```
-bioauth-enroll --finger N --label "name"   enroll a finger
-bioauth-enroll --list                       list enrollments
-bioauth-enroll --delete --finger N          delete one finger
-bioauth-enroll --delete-all                 delete all
-bioauth-verify                              test verification
-bioauth-cli                                 interactive shell
+hiya-enroll --finger N --label "name"   enroll a finger
+hiya-enroll --list                       list enrollments
+hiya-enroll --delete --finger N          delete one finger
+hiya-enroll --delete-all                 delete all
+hiya-verify                              test verification
+hiya-cli                                 interactive shell
 sudo ./install.sh status                    daemon status
 ```
 
 ## What gets patched
 
-Install wires `pam_bioauth.so` into every PAM file on the system that has auth lines. Uninstall restores all backups. The PAM line uses `default=ignore` so a failed or timed-out fingerprint always falls through to password — it never blocks login.
+Install wires `pam_hiya.so` into every PAM file on the system that has auth lines. Uninstall restores all backups. The PAM line uses `default=ignore` so a failed or timed-out fingerprint always falls through to password — it never blocks login.
 
 ## Supported distros
 

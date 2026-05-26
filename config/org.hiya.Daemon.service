@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=org.hiya.Daemon
+Exec=/usr/sbin/hiya-authd
+User=root
+SystemdService=hiya-authd.service

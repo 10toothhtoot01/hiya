@@ -1,7 +1,7 @@
 /*
  * bio_fido2_uhid.c — CTAPHID Virtual USB Device via /dev/uhid
  *
- * Copyright (C) 2025 BioAuth Project
+ * Copyright (C) 2025 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Creates a virtual USB HID device using Linux's /dev/uhid interface.
@@ -171,13 +171,13 @@ static int uhid_create_device(int fd)
     struct uhid_event ev;
     memset(&ev, 0, sizeof(ev));
     ev.type = UHID_CREATE2;
-    strncpy((char *)ev.u.create2.name, "BioAuth FIDO2 Authenticator",
+    strncpy((char *)ev.u.create2.name, "Hiya FIDO2 Authenticator",
             sizeof(ev.u.create2.name) - 1);
     ev.u.create2.rd_size = sizeof(fido2_hid_report_desc);
     memcpy(ev.u.create2.rd_data, fido2_hid_report_desc,
            sizeof(fido2_hid_report_desc));
     ev.u.create2.bus = 0x03;       /* BUS_USB */
-    ev.u.create2.vendor = 0xB10A;  /* BioAuth vendor ID (fictional) */
+    ev.u.create2.vendor = 0xB10A;  /* Hiya vendor ID (fictional) */
     ev.u.create2.product = 0xF1D0; /* FIDO product ID */
     ev.u.create2.version = 0x0100;
     ev.u.create2.country = 0;
@@ -399,7 +399,7 @@ static void handle_ctaphid_init(bio_fido2_uhid_t *uhid,
     memcpy(resp, data, 8);         /* Echo nonce */
     write_be32(resp + 8, ch->cid); /* Allocated CID */
     resp[12] = 2;                  /* CTAPHID protocol version */
-    resp[13] = 1;                  /* Major version (BioAuth 1.x) */
+    resp[13] = 1;                  /* Major version (Hiya 1.x) */
     resp[14] = 0;                  /* Minor version */
     resp[15] = 0;                  /* Build number */
     resp[16] = 0x05;               /* Capabilities: WINK (0x01) | CBOR (0x04) */
@@ -472,7 +472,7 @@ static void handle_ctaphid_cbor(bio_fido2_uhid_t *uhid,
     }
 
     /* Process via the CTAP2 engine */
-    uint8_t rsp_buf[BIOAUTH_FIDO2_MAX_MSG];
+    uint8_t rsp_buf[HIYA_FIDO2_MAX_MSG];
     size_t rsp_len = sizeof(rsp_buf) - 1; /* Reserve 1 byte for status */
 
     uint8_t status = bio_fido2_process(uhid->fido2_ctx, ctap2_cmd,
@@ -915,7 +915,7 @@ int bio_fido2_uhid_start(bio_fido2_uhid_t *uhid)
     uhid->thread_valid = true;
 
     BIO_INFO("uhid: reader thread started — browsers can now discover "
-             "BioAuth FIDO2 authenticator");
+             "Hiya FIDO2 authenticator");
     return BIO_OK;
 }
 

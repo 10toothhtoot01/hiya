@@ -1,12 +1,12 @@
 %global selinux_policyver 3.14.3
 
-Name:           bioauth
+Name:           hiya
 Version:        0.1.0
 Release:        0.alpha1%{?dist}
 Summary:        Local biometric authentication daemon for Linux
 
 License:        GPL-3.0-or-later
-URL:            https://github.com/bioauth/bioauth
+URL:            https://github.com/hiya/hiya
 Source0:        %{name}-%{version}.tar.gz
 
 BuildRequires:  meson >= 0.60.0
@@ -52,7 +52,7 @@ Requires(post):    policycoreutils
 Requires(postun):  policycoreutils
 
 %description
-BioAuth is a 100%% local, privacy-first biometric authentication system
+Hiya is a 100%% local, privacy-first biometric authentication system
 for Linux, comparable to Windows Hello. It provides fingerprint-based
 authentication integrated with PAM, D-Bus, systemd, PolicyKit, TPM 2.0,
 and FIDO2/WebAuthn — entirely offline with zero cloud dependencies.
@@ -76,7 +76,7 @@ Summary:        Development files for %{name}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 
 %description    devel
-Header files and development documentation for BioAuth.
+Header files and development documentation for Hiya.
 
 %package        selinux
 Summary:        SELinux policy for %{name}
@@ -87,7 +87,7 @@ Requires(post):    policycoreutils
 Requires(postun):  policycoreutils
 
 %description    selinux
-SELinux policy module for the BioAuth biometric authentication daemon.
+SELinux policy module for the Hiya biometric authentication daemon.
 Confines the daemon, PAM module, and FIDO2 service to restricted
 domains with minimal privileges.
 
@@ -100,7 +100,7 @@ Requires:       kf6-ki18n%{?_isa}
 Requires:       kf6-kirigami%{?_isa}
 
 %description    ui
-Qt6/QML frontend components for BioAuth biometric authentication:
+Qt6/QML frontend components for Hiya biometric authentication:
 - Auth overlay: frosted glass modal for fingerprint verification
   (invoked by polkit agent, PAM, sudo)
 - KDE System Settings module for fingerprint enrollment management
@@ -117,50 +117,50 @@ Qt6/QML frontend components for BioAuth biometric authentication:
 
 # Build SELinux policy module
 cd selinux
-make -f %{_datadir}/selinux/devel/Makefile bioauth.pp
-bzip2 bioauth.pp
+make -f %{_datadir}/selinux/devel/Makefile hiya.pp
+bzip2 hiya.pp
 cd ..
 
 %install
 %meson_install
 
 # SELinux policy module
-install -D -m 0644 selinux/bioauth.pp.bz2 \
-    %{buildroot}%{_datadir}/selinux/packages/%{name}/bioauth.pp.bz2
+install -D -m 0644 selinux/hiya.pp.bz2 \
+    %{buildroot}%{_datadir}/selinux/packages/%{name}/hiya.pp.bz2
 
 # Man pages
 install -d %{buildroot}%{_mandir}/man1
 install -d %{buildroot}%{_mandir}/man5
 install -d %{buildroot}%{_mandir}/man8
-install -m 0644 man/bioauth-enroll.1 %{buildroot}%{_mandir}/man1/
-install -m 0644 man/bioauth-verify.1 %{buildroot}%{_mandir}/man1/
-install -m 0644 man/bioauth-config.1 %{buildroot}%{_mandir}/man1/
-install -m 0644 man/bioauth.conf.5 %{buildroot}%{_mandir}/man5/
-install -m 0644 man/biometric-authd.8 %{buildroot}%{_mandir}/man8/
-install -m 0644 man/pam_bioauth.8 %{buildroot}%{_mandir}/man8/
+install -m 0644 man/hiya-enroll.1 %{buildroot}%{_mandir}/man1/
+install -m 0644 man/hiya-verify.1 %{buildroot}%{_mandir}/man1/
+install -m 0644 man/hiya-config.1 %{buildroot}%{_mandir}/man1/
+install -m 0644 man/hiya.conf.5 %{buildroot}%{_mandir}/man5/
+install -m 0644 man/hiya-authd.8 %{buildroot}%{_mandir}/man8/
+install -m 0644 man/pam_hiya.8 %{buildroot}%{_mandir}/man8/
 
 # PolicyKit policy
-install -D -m 0644 config/org.bioauth.policy \
-    %{buildroot}%{_datadir}/polkit-1/actions/org.bioauth.policy
+install -D -m 0644 config/org.hiya.policy \
+    %{buildroot}%{_datadir}/polkit-1/actions/org.hiya.policy
 
 # udev rules
-install -D -m 0644 config/70-bioauth-fingerprint.rules \
-    %{buildroot}%{_prefix}/lib/udev/rules.d/70-bioauth-fingerprint.rules
+install -D -m 0644 config/70-hiya-fingerprint.rules \
+    %{buildroot}%{_prefix}/lib/udev/rules.d/70-hiya-fingerprint.rules
 
 # Create state directories
-install -d -m 0700 %{buildroot}%{_sharedstatedir}/bioauth
-install -d -m 0750 %{buildroot}%{_rundir}/bioauth
+install -d -m 0700 %{buildroot}%{_sharedstatedir}/hiya
+install -d -m 0750 %{buildroot}%{_rundir}/hiya
 
-# tmpfiles.d for /run/bioauth
+# tmpfiles.d for /run/hiya
 install -d %{buildroot}%{_tmpfilesdir}
 cat > %{buildroot}%{_tmpfilesdir}/%{name}.conf <<'EOF'
-d /run/bioauth 0750 root root -
+d /run/hiya 0750 root root -
 EOF
 
-# sysusers.d (create bioauth group for udev/state access)
+# sysusers.d (create hiya group for udev/state access)
 install -d %{buildroot}%{_sysusersdir}
 cat > %{buildroot}%{_sysusersdir}/%{name}.conf <<'EOF'
-g bioauth -
+g hiya -
 EOF
 
 %check
@@ -169,28 +169,28 @@ EOF
 # ── Scriptlets ───────────────────────────────────────────────────
 
 %post
-%systemd_post biometric-authd.service biometric-authd.socket bioauth-fido2.service
+%systemd_post hiya-authd.service hiya-authd.socket hiya-fido2.service
 udevadm control --reload-rules 2>/dev/null || :
 udevadm trigger --subsystem-match=usb --attr-match=bInterfaceClass=ff 2>/dev/null || :
 
 %preun
-%systemd_preun biometric-authd.service biometric-authd.socket bioauth-fido2.service
+%systemd_preun hiya-authd.service hiya-authd.socket hiya-fido2.service
 
 %postun
-%systemd_postun_with_restart biometric-authd.service biometric-authd.socket bioauth-fido2.service
+%systemd_postun_with_restart hiya-authd.service hiya-authd.socket hiya-fido2.service
 udevadm control --reload-rules 2>/dev/null || :
 
 %post selinux
-semodule -i %{_datadir}/selinux/packages/%{name}/bioauth.pp.bz2 2>/dev/null || :
+semodule -i %{_datadir}/selinux/packages/%{name}/hiya.pp.bz2 2>/dev/null || :
 fixfiles -R %{name} restore 2>/dev/null || :
-restorecon -R %{_sbindir}/biometric-authd 2>/dev/null || :
-restorecon -R %{_libexecdir}/bioauth-fido2d 2>/dev/null || :
-restorecon -R %{_sharedstatedir}/bioauth 2>/dev/null || :
-restorecon -R %{_sysconfdir}/bioauth 2>/dev/null || :
+restorecon -R %{_sbindir}/hiya-authd 2>/dev/null || :
+restorecon -R %{_libexecdir}/hiya-fido2d 2>/dev/null || :
+restorecon -R %{_sharedstatedir}/hiya 2>/dev/null || :
+restorecon -R %{_sysconfdir}/hiya 2>/dev/null || :
 
 %postun selinux
 if [ $1 -eq 0 ]; then
-    semodule -r bioauth 2>/dev/null || :
+    semodule -r hiya 2>/dev/null || :
     fixfiles -R %{name} restore 2>/dev/null || :
 fi
 
@@ -198,84 +198,84 @@ fi
 
 %files
 # Daemon binary
-%{_sbindir}/biometric-authd
+%{_sbindir}/hiya-authd
 
 # FIDO2 daemon
-%{_libexecdir}/bioauth-fido2d
+%{_libexecdir}/hiya-fido2d
 
 # CLI tools
-%{_bindir}/bioauth-enroll
-%{_bindir}/bioauth-verify
-%{_bindir}/bioauth-config
+%{_bindir}/hiya-enroll
+%{_bindir}/hiya-verify
+%{_bindir}/hiya-config
 
 # PAM module
-%{_libdir}/security/pam_bioauth.so
+%{_libdir}/security/pam_hiya.so
 
 # SSH middleware
-%{_libdir}/libsk-bioauth.so
+%{_libdir}/libsk-hiya.so
 
 # XDG desktop portal backend
-%{_libexecdir}/bioauth-portal
-%{_datadir}/xdg-desktop-portal/portals/bioauth.portal
-%{_datadir}/dbus-1/services/org.freedesktop.impl.portal.desktop.bioauth.service
+%{_libexecdir}/hiya-portal
+%{_datadir}/xdg-desktop-portal/portals/hiya.portal
+%{_datadir}/dbus-1/services/org.freedesktop.impl.portal.desktop.hiya.service
 
 # systemd units
-%{_unitdir}/biometric-authd.service
-%{_unitdir}/biometric-authd.socket
-%{_unitdir}/bioauth-fido2.service
+%{_unitdir}/hiya-authd.service
+%{_unitdir}/hiya-authd.socket
+%{_unitdir}/hiya-fido2.service
 
 # D-Bus
-%{_sysconfdir}/dbus-1/system.d/org.bioauth.Manager.conf
-%{_datadir}/dbus-1/system-services/org.bioauth.Manager.service
+%{_sysconfdir}/dbus-1/system.d/org.hiya.Manager.conf
+%{_datadir}/dbus-1/system-services/org.hiya.Manager.service
 
 # PolicyKit
-%{_datadir}/polkit-1/actions/org.bioauth.policy
+%{_datadir}/polkit-1/actions/org.hiya.policy
 
 # udev
 %{_sysusersdir}/%{name}.conf
-%{_prefix}/lib/udev/rules.d/70-bioauth-fingerprint.rules
+%{_prefix}/lib/udev/rules.d/70-hiya-fingerprint.rules
 
 # Configuration
-%dir %{_sysconfdir}/bioauth
-%config(noreplace) %{_sysconfdir}/bioauth/bioauth.conf
-%config(noreplace) %{_sysconfdir}/pam.d/pam_bioauth
+%dir %{_sysconfdir}/hiya
+%config(noreplace) %{_sysconfdir}/hiya/hiya.conf
+%config(noreplace) %{_sysconfdir}/pam.d/pam_hiya
 
 # State and runtime
-%dir %attr(0700,root,root) %{_sharedstatedir}/bioauth
-%ghost %dir %attr(0750,root,root) %{_rundir}/bioauth
+%dir %attr(0700,root,root) %{_sharedstatedir}/hiya
+%ghost %dir %attr(0750,root,root) %{_rundir}/hiya
 %{_tmpfilesdir}/%{name}.conf
 
 # Man pages
-%{_mandir}/man1/bioauth-enroll.1*
-%{_mandir}/man1/bioauth-verify.1*
-%{_mandir}/man1/bioauth-config.1*
-%{_mandir}/man5/bioauth.conf.5*
-%{_mandir}/man8/biometric-authd.8*
-%{_mandir}/man8/pam_bioauth.8*
+%{_mandir}/man1/hiya-enroll.1*
+%{_mandir}/man1/hiya-verify.1*
+%{_mandir}/man1/hiya-config.1*
+%{_mandir}/man5/hiya.conf.5*
+%{_mandir}/man8/hiya-authd.8*
+%{_mandir}/man8/pam_hiya.8*
 
 # License and docs
 %license LICENSE
 %doc README.md
 
 %files selinux
-%{_datadir}/selinux/packages/%{name}/bioauth.pp.bz2
+%{_datadir}/selinux/packages/%{name}/hiya.pp.bz2
 
 %files devel
-%{_includedir}/bioauth/
+%{_includedir}/hiya/
 
 %files ui
 # Auth overlay
-%{_libexecdir}/bioauth-overlay
+%{_libexecdir}/hiya-overlay
 
 # KCM plugin
-%{_libdir}/qt6/plugins/plasma/kcms/libkcm_bioauth_fingerprint.so
-%{_libdir}/qt6/plugins/plasma/kcms/kcm_bioauth_fingerprint.json
+%{_libdir}/qt6/plugins/plasma/kcms/libkcm_hiya_fingerprint.so
+%{_libdir}/qt6/plugins/plasma/kcms/kcm_hiya_fingerprint.json
 
 # Plasmoid
-%{_datadir}/plasma/plasmoids/org.bioauth.plasmoid/
+%{_datadir}/plasma/plasmoids/org.hiya.plasmoid/
 
 %changelog
-* Wed Jan 01 2025 BioAuth Project <bioauth@localhost> - 0.1.0-1
+* Wed Jan 01 2025 Hiya Project <hiya@localhost> - 0.1.0-1
 - Initial Fedora package
 - PAM module with fingerprint authentication
 - D-Bus daemon with systemd integration

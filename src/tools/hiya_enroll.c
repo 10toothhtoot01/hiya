@@ -1,11 +1,11 @@
 /*
- * bioauth_enroll.c — CLI Enrollment Tool
+ * hiya_enroll.c — CLI Enrollment Tool
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Usage:
- *   bioauth-enroll [OPTIONS]
+ *   hiya-enroll [OPTIONS]
  *
  * Options:
  *   -f, --finger FINGER   Finger to enroll (1-10, default: 1 = left-thumb)
@@ -67,7 +67,7 @@ static void sigint_handler(int sig)
 static void usage(const char *prog)
 {
     fprintf(stderr,
-        "BioAuth Fingerprint Enrollment Tool\n"
+        "Hiya Fingerprint Enrollment Tool\n"
         "\n"
         "Usage: %s [OPTIONS]\n"
         "\n"
@@ -137,7 +137,7 @@ static GDBusConnection *get_bus(void)
             fprintf(stderr, ": %s", err->message);
             g_error_free(err);
         }
-        fprintf(stderr, "\nIs biometric-authd running?\n");
+        fprintf(stderr, "\nIs hiya-authd running?\n");
         return NULL;
     }
     return conn;
@@ -211,10 +211,10 @@ static guint subscribe_progress(GDBusConnection *conn)
 {
     return g_dbus_connection_signal_subscribe(
         conn,
-        "org.bioauth.Manager",          /* sender */
-        "org.bioauth.Manager",          /* interface */
+        "org.hiya.Manager",          /* sender */
+        "org.hiya.Manager",          /* interface */
         "EnrollProgress",               /* signal */
-        "/org/bioauth/Manager",         /* object path */
+        "/org/hiya/Manager",         /* object path */
         NULL,                           /* arg0 */
         G_DBUS_SIGNAL_FLAGS_NONE,
         on_enroll_progress,
@@ -233,9 +233,9 @@ static int cmd_list(uid_t uid)
     GError *err = NULL;
     GVariant *result = g_dbus_connection_call_sync(
         conn,
-        "org.bioauth.Manager",
-        "/org/bioauth/Manager",
-        "org.bioauth.Manager",
+        "org.hiya.Manager",
+        "/org/hiya/Manager",
+        "org.hiya.Manager",
         "GetEnrolledFingers",
         g_variant_new("(u)", (guint32)uid),
         G_VARIANT_TYPE("(an)"),
@@ -301,7 +301,7 @@ static int cmd_enroll(int finger, const char *label, uid_t uid)
     sigaction(SIGINT, &sa, NULL);
 
     printf("╔══════════════════════════════════════════════════╗\n");
-    printf("║         BioAuth Fingerprint Enrollment          ║\n");
+    printf("║         Hiya Fingerprint Enrollment          ║\n");
     printf("╚══════════════════════════════════════════════════╝\n\n");
     printf("  Finger:  %s (#%d)\n", finger_names[finger], finger);
     printf("  Label:   \"%s\"\n", label);
@@ -328,9 +328,9 @@ static int cmd_enroll(int finger, const char *label, uid_t uid)
 
     g_dbus_connection_call(
         conn,
-        "org.bioauth.Manager",
-        "/org/bioauth/Manager",
-        "org.bioauth.Manager",
+        "org.hiya.Manager",
+        "/org/hiya/Manager",
+        "org.hiya.Manager",
         "Enroll",
         g_variant_new("(ns)", (gint16)finger, label),
         G_VARIANT_TYPE("(b)"),
@@ -408,9 +408,9 @@ static int cmd_delete(int finger, uid_t uid)
     GError *err = NULL;
     GVariant *result = g_dbus_connection_call_sync(
         conn,
-        "org.bioauth.Manager",
-        "/org/bioauth/Manager",
-        "org.bioauth.Manager",
+        "org.hiya.Manager",
+        "/org/hiya/Manager",
+        "org.hiya.Manager",
         "DeleteEnrollment",
         g_variant_new("(n)", (gint16)finger),
         G_VARIANT_TYPE("(b)"),
@@ -449,9 +449,9 @@ static int cmd_delete_all(uid_t uid)
     GError *err = NULL;
     GVariant *list_result = g_dbus_connection_call_sync(
         conn,
-        "org.bioauth.Manager",
-        "/org/bioauth/Manager",
-        "org.bioauth.Manager",
+        "org.hiya.Manager",
+        "/org/hiya/Manager",
+        "org.hiya.Manager",
         "GetEnrolledFingers",
         g_variant_new("(u)", (guint32)uid),
         G_VARIANT_TYPE("(an)"),
@@ -481,9 +481,9 @@ static int cmd_delete_all(uid_t uid)
         GError *del_err = NULL;
         GVariant *del_result = g_dbus_connection_call_sync(
             conn,
-            "org.bioauth.Manager",
-            "/org/bioauth/Manager",
-            "org.bioauth.Manager",
+            "org.hiya.Manager",
+            "/org/hiya/Manager",
+            "org.hiya.Manager",
             "DeleteEnrollment",
             g_variant_new("(n)", finger),
             G_VARIANT_TYPE("(b)"),

@@ -1,7 +1,7 @@
 /*
  * bio_fido2_bio_cred.c — CTAP2 BioEnrollment + CredentialManagement
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Implements:

@@ -1,11 +1,11 @@
 /*
  * bio_fido2_transport.c — CTAP2 Unix Domain Socket Transport Layer
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Provides a Unix socket transport for local CTAP2 communication.
- * Browsers and clients connect to /run/bioauth/fido2.sock and exchange
+ * Browsers and clients connect to /run/hiya/fido2.sock and exchange
  * framed CTAP2 messages.
  *
  * Wire format (each direction):
@@ -206,7 +206,7 @@ static bool peer_is_authorized(uid_t uid)
     if (uid == 0)
         return true;
 
-    struct group *grp = getgrnam("bioauth");
+    struct group *grp = getgrnam("hiya");
     if (!grp)
         return false;
 
@@ -224,8 +224,8 @@ static bool peer_is_authorized(uid_t uid)
  */
 static void handle_client(bio_fido2_transport_t *tp, int client_fd)
 {
-    uint8_t req_buf[BIOAUTH_FIDO2_MAX_MSG];
-    uint8_t rsp_buf[BIOAUTH_FIDO2_MAX_MSG];
+    uint8_t req_buf[HIYA_FIDO2_MAX_MSG];
+    uint8_t rsp_buf[HIYA_FIDO2_MAX_MSG];
     int request_count = 0;
 
     /* Get peer credentials for logging */
@@ -334,8 +334,8 @@ static int create_listen_socket(const char *path)
 
     umask(old_umask);
 
-    /* Try to set group to "bioauth" if it exists, for access control */
-    struct group *grp = getgrnam("bioauth");
+    /* Try to set group to "hiya" if it exists, for access control */
+    struct group *grp = getgrnam("hiya");
     if (grp)
     {
         if (chown(path, 0, grp->gr_gid) != 0)
@@ -380,7 +380,7 @@ int bio_fido2_transport_init(bio_fido2_transport_t *tp,
     }
     else
     {
-        strncpy(tp->sock_path, BIOAUTH_FIDO2_SOCK_PATH,
+        strncpy(tp->sock_path, HIYA_FIDO2_SOCK_PATH,
                 sizeof(tp->sock_path) - 1);
     }
 

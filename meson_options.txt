@@ -1,4 +1,4 @@
-# BioAuth build options
+# Hiya build options
 
 option('ui',
     type : 'feature',

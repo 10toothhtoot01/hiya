@@ -1,7 +1,7 @@
 /*
  * bio_fido2_pin.c — CTAP2 ClientPIN + Reset + Selection + Credential Storage
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Implements:

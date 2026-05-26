@@ -1,7 +1,7 @@
 /*
  * pm_password_gen.c - Password generator with configurable policies
  *
- * Copyright (C) 2026 BioAuth Project
+ * Copyright (C) 2026 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -103,8 +103,8 @@ static pm_error_t get_secure_random(uint8_t *buffer, size_t size)
         mbedtls_ctr_drbg_init(&ctr_drbg);
 
         int ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
-                                        (const unsigned char *)"bioauth_pwgen",
-                                        strlen("bioauth_pwgen"));
+                                        (const unsigned char *)"hiya_pwgen",
+                                        strlen("hiya_pwgen"));
         if (ret != 0)
         {
             return PM_ERR_CRYPTO;

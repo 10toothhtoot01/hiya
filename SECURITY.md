@@ -11,7 +11,7 @@
 
 **Do not open a public GitHub issue for security vulnerabilities.**
 
-Email: security@bioauth.dev (or open a private GitHub security advisory)
+Email: security@hiya.dev (or open a private GitHub security advisory)
 
 Include:
 - Description of the vulnerability

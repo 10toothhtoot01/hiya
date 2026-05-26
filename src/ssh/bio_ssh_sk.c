@@ -1,23 +1,23 @@
 /*
- * bio_ssh_sk.c — OpenSSH Security Key Middleware for BioAuth
+ * bio_ssh_sk.c — OpenSSH Security Key Middleware for Hiya
  *
- * Copyright (C) 2025 BioAuth Project
+ * Copyright (C) 2025 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Implements the OpenSSH security key middleware API (sk-api.h),
- * allowing SSH to use BioAuth's FIDO2 platform authenticator for
+ * allowing SSH to use Hiya's FIDO2 platform authenticator for
  * ecdsa-sk and ed25519-sk key types.
  *
  * This shared library is loaded by ssh/ssh-agent when the user
  * specifies it via:
- *   ssh-keygen -t ecdsa-sk -w /usr/lib64/libsk-bioauth.so
- *   ssh-add -s /usr/lib64/libsk-bioauth.so
+ *   ssh-keygen -t ecdsa-sk -w /usr/lib64/libsk-hiya.so
+ *   ssh-add -s /usr/lib64/libsk-hiya.so
  *
  * Or system-wide via /etc/ssh/ssh_config:
- *   SecurityKeyProvider /usr/lib64/libsk-bioauth.so
+ *   SecurityKeyProvider /usr/lib64/libsk-hiya.so
  *
- * The middleware communicates with the BioAuth FIDO2 daemon over
- * its Unix domain socket at /run/bioauth/fido2.sock to perform
+ * The middleware communicates with the Hiya FIDO2 daemon over
+ * its Unix domain socket at /run/hiya/fido2.sock to perform
  * CTAP2 makeCredential and getAssertion operations.
  *
  * Key flow:
@@ -26,7 +26,7 @@
  *   3. sk_load_resident_keys() → discovers resident keys on the
  *      authenticator (for ssh-add -K)
  *
- * All operations require fingerprint verification via BioAuth.
+ * All operations require fingerprint verification via Hiya.
  *
  * References:
  *   OpenSSH sk-api.h (OPENSSH_SK_VERSION_MAJOR 0x000a0000)
@@ -128,7 +128,7 @@ struct sk_option
 /* COSE algorithm identifiers */
 #define COSE_ALG_ES256 (-7) /* ECDSA w/ SHA-256, P-256 */
 
-#define FIDO2_SOCK_PATH "/run/bioauth/fido2.sock"
+#define FIDO2_SOCK_PATH "/run/hiya/fido2.sock"
 #define FIDO2_MAX_MSG 4096
 
 /* ── Internal: Unix socket communication ─────────────────────── */
@@ -286,7 +286,7 @@ uint32_t sk_api_version(void)
 /*
  * Enroll a new security key (ssh-keygen -t ecdsa-sk / ed25519-sk).
  *
- * Sends a CTAP2 authenticatorMakeCredential command to the BioAuth
+ * Sends a CTAP2 authenticatorMakeCredential command to the Hiya
  * FIDO2 daemon. The user will be prompted for fingerprint verification.
  */
 int sk_enroll(uint32_t alg,
@@ -305,12 +305,12 @@ int sk_enroll(uint32_t alg,
 
     if (alg == SSH_SK_ED25519)
     {
-        fprintf(stderr, "BioAuth: Ed25519 security keys (ed25519-sk) are not "
+        fprintf(stderr, "Hiya: Ed25519 security keys (ed25519-sk) are not "
                         "supported.\nUse: ssh-keygen -t ecdsa-sk\n");
         return -1;
     }
 
-    fprintf(stderr, "BioAuth: enrolling SSH key for '%s' "
+    fprintf(stderr, "Hiya: enrolling SSH key for '%s' "
                     "(touch your fingerprint reader)\n",
             application);
 
@@ -362,7 +362,7 @@ int sk_enroll(uint32_t alg,
         uint8_t user_id[32];
         if (bio_random_bytes(user_id, sizeof(user_id)) != BIO_OK)
         {
-            fprintf(stderr, "BioAuth: RNG failure in sk_enroll\n");
+            fprintf(stderr, "Hiya: RNG failure in sk_enroll\n");
             ssh_secure_wipe(client_data_hash, sizeof(client_data_hash));
             ssh_secure_wipe(req, sizeof(req));
             return -1;
@@ -398,7 +398,7 @@ int sk_enroll(uint32_t alg,
 
     if (bio_cbor_encoder_has_error(&enc))
     {
-        fprintf(stderr, "BioAuth: CBOR encode error in sk_enroll\n");
+        fprintf(stderr, "Hiya: CBOR encode error in sk_enroll\n");
         ssh_secure_wipe(client_data_hash, sizeof(client_data_hash));
         ssh_secure_wipe(req, sizeof(req));
         return -1;
@@ -419,7 +419,7 @@ int sk_enroll(uint32_t alg,
 
     if (rc != 0 || status != CTAP2_OK)
     {
-        fprintf(stderr, "BioAuth: key enrollment failed "
+        fprintf(stderr, "Hiya: key enrollment failed "
                         "(rc=%d, status=0x%02x)\n",
                 rc, status);
         ssh_secure_wipe(rsp, sizeof(rsp));
@@ -515,7 +515,7 @@ parse_authdata:
 
     if (!resp->key_handle || !resp->public_key)
     {
-        fprintf(stderr, "BioAuth: sk_enroll: missing credential data in response\n");
+        fprintf(stderr, "Hiya: sk_enroll: missing credential data in response\n");
         free(resp->key_handle);
         free(resp->public_key);
         free(resp->signature);
@@ -527,7 +527,7 @@ parse_authdata:
     }
 
     *enroll_response = resp;
-    fprintf(stderr, "BioAuth: SSH key enrolled successfully\n");
+    fprintf(stderr, "Hiya: SSH key enrolled successfully\n");
     ssh_secure_wipe(rsp, sizeof(rsp));
     return 0;
 }
@@ -535,7 +535,7 @@ parse_authdata:
 /*
  * Sign a challenge (SSH authentication).
  *
- * Sends a CTAP2 authenticatorGetAssertion command to the BioAuth
+ * Sends a CTAP2 authenticatorGetAssertion command to the Hiya
  * FIDO2 daemon. The user will be prompted for fingerprint verification.
  */
 int sk_sign(uint32_t alg,
@@ -600,7 +600,7 @@ int sk_sign(uint32_t alg,
 
     if (bio_cbor_encoder_has_error(&enc))
     {
-        fprintf(stderr, "BioAuth: CBOR encode error in sk_sign\n");
+        fprintf(stderr, "Hiya: CBOR encode error in sk_sign\n");
         ssh_secure_wipe(client_data_hash, sizeof(client_data_hash));
         ssh_secure_wipe(req, sizeof(req));
         return -1;
@@ -621,7 +621,7 @@ int sk_sign(uint32_t alg,
 
     if (rc != 0 || status != CTAP2_OK)
     {
-        fprintf(stderr, "BioAuth: SSH sign failed "
+        fprintf(stderr, "Hiya: SSH sign failed "
                         "(rc=%d, status=0x%02x)\n",
                 rc, status);
         ssh_secure_wipe(rsp, sizeof(rsp));
@@ -872,7 +872,7 @@ void sk_resident_free(struct sk_resident_key *rk)
 /*
  * Load resident keys from the authenticator (ssh-add -K).
  *
- * Queries BioAuth's FIDO2 daemon for discoverable credentials
+ * Queries Hiya's FIDO2 daemon for discoverable credentials
  * and returns them as SSH keys.
  */
 int sk_load_resident_keys(const char *pin,
@@ -997,7 +997,7 @@ int sk_load_resident_keys(const char *pin,
 
     if (total_rps == 0 || first_rp_id[0] == '\0')
     {
-        fprintf(stderr, "BioAuth: no resident keys found\n");
+        fprintf(stderr, "Hiya: no resident keys found\n");
         return 0;
     }
 
@@ -1024,7 +1024,7 @@ int sk_load_resident_keys(const char *pin,
                          rsp, sizeof(rsp), &rsp_len, &status);
     if (rc != 0 || status != CTAP2_OK)
     {
-        fprintf(stderr, "BioAuth: credential enumeration failed\n");
+        fprintf(stderr, "Hiya: credential enumeration failed\n");
         return 0;
     }
 
@@ -1210,7 +1210,7 @@ int sk_load_resident_keys(const char *pin,
     *rks = keys;
     *nrks = key_count;
 
-    fprintf(stderr, "BioAuth: resident key enumeration complete "
+    fprintf(stderr, "Hiya: resident key enumeration complete "
                     "(%zu keys)\n",
             *nrks);
     return 0;

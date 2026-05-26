@@ -18,7 +18,7 @@ dep_bio_daemon = declare_dependency(
 
 # The actual daemon executable
 biometric_authd = executable(
-    'biometric-authd',
+    'hiya-authd',
     'main.c',
     include_directories: inc_root,
     dependencies: [dep_glib, dep_gio, dep_gio_unix, dep_dbus, dep_systemd],

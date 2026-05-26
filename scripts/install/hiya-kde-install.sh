@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# bioauth-kde-install.sh — KDE Plasma 6 integration installer
+# hiya-kde-install.sh — KDE Plasma 6 integration installer
 #
 # Installs PAM configurations for seamless fingerprint authentication
 # across all KDE Plasma 6 authentication points:
@@ -10,9 +10,9 @@
 #   - PolicyKit (privilege escalation dialogs)
 #   - sudo/su (terminal)
 #
-# Usage: sudo ./bioauth-kde-install.sh [install|uninstall|status]
+# Usage: sudo ./hiya-kde-install.sh [install|uninstall|status]
 #
-# Copyright (C) 2025 BioAuth Project
+# Copyright (C) 2025 Hiya Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
@@ -21,8 +21,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 PAM_DIR="/etc/pam.d"
-BIOAUTH_PAM="/usr/lib64/security/pam_bioauth.so"
-BACKUP_SUFFIX=".bioauth-backup"
+HIYA_PAM="/usr/lib64/security/pam_hiya.so"
+BACKUP_SUFFIX=".hiya-backup"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -43,32 +43,32 @@ check_root() {
 }
 
 check_pam_module() {
-    if [[ ! -f "$BIOAUTH_PAM" ]]; then
-        log_error "BioAuth PAM module not found at $BIOAUTH_PAM"
-        log_error "Build and install BioAuth first: meson install -C builddir"
+    if [[ ! -f "$HIYA_PAM" ]]; then
+        log_error "Hiya PAM module not found at $HIYA_PAM"
+        log_error "Build and install Hiya first: meson install -C builddir"
         exit 1
     fi
-    log_ok "PAM module found: $BIOAUTH_PAM"
+    log_ok "PAM module found: $HIYA_PAM"
 }
 
 check_daemon() {
-    if systemctl is-active --quiet biometric-authd.service 2>/dev/null; then
-        log_ok "BioAuth daemon is running"
+    if systemctl is-active --quiet hiya-authd.service 2>/dev/null; then
+        log_ok "Hiya daemon is running"
     else
-        log_warn "BioAuth daemon is not running"
-        log_warn "Start it: sudo systemctl enable --now biometric-authd.service"
+        log_warn "Hiya daemon is not running"
+        log_warn "Start it: sudo systemctl enable --now hiya-authd.service"
     fi
 }
 
 check_enrollments() {
-    if command -v bioauth-enroll &>/dev/null; then
+    if command -v hiya-enroll &>/dev/null; then
         local user
         user=$(logname 2>/dev/null || echo "$SUDO_USER")
-        if bioauth-enroll --list --user "$user" 2>/dev/null | grep -q "finger"; then
+        if hiya-enroll --list --user "$user" 2>/dev/null | grep -q "finger"; then
             log_ok "Fingerprint enrollments found for user $user"
         else
             log_warn "No fingerprint enrollments for user $user"
-            log_warn "Enroll first: bioauth-enroll --finger 2 --label 'right-index'"
+            log_warn "Enroll first: hiya-enroll --finger 2 --label 'right-index'"
         fi
     fi
 }
@@ -87,9 +87,9 @@ install_pam_config() {
     local target="${PAM_DIR}/${service}"
 
     if [[ -f "$target" ]]; then
-        # Check if BioAuth is already integrated
-        if grep -q "pam_bioauth" "$target" 2>/dev/null; then
-            log_ok "$service: BioAuth already configured"
+        # Check if Hiya is already integrated
+        if grep -q "pam_hiya" "$target" 2>/dev/null; then
+            log_ok "$service: Hiya already configured"
             return 0
         fi
         backup_pam_file "$target"
@@ -97,11 +97,11 @@ install_pam_config() {
 
     cp "$source" "$target"
     chmod 644 "$target"
-    log_ok "$service: BioAuth PAM config installed"
+    log_ok "$service: Hiya PAM config installed"
 }
 
 do_install() {
-    log_info "Installing BioAuth KDE Plasma 6 integration..."
+    log_info "Installing Hiya KDE Plasma 6 integration..."
     echo
 
     check_pam_module
@@ -128,21 +128,21 @@ do_install() {
     fi
 
     # Also configure sudo if not already done
-    if ! grep -q "pam_bioauth" "${PAM_DIR}/sudo" 2>/dev/null; then
+    if ! grep -q "pam_hiya" "${PAM_DIR}/sudo" 2>/dev/null; then
         backup_pam_file "${PAM_DIR}/sudo"
-        # Prepend bioauth to sudo
+        # Prepend hiya to sudo
         local tmp
         tmp=$(mktemp)
         {
-            echo "# BioAuth fingerprint auth for sudo"
-            echo "auth      [success=2 default=ignore]  pam_bioauth.so timeout=30"
+            echo "# Hiya fingerprint auth for sudo"
+            echo "auth      [success=2 default=ignore]  pam_hiya.so timeout=30"
             cat "${PAM_DIR}/sudo"
         } > "$tmp"
         mv "$tmp" "${PAM_DIR}/sudo"
         chmod 644 "${PAM_DIR}/sudo"
-        log_ok "sudo: BioAuth fingerprint auth prepended"
+        log_ok "sudo: Hiya fingerprint auth prepended"
     else
-        log_ok "sudo: BioAuth already configured"
+        log_ok "sudo: Hiya already configured"
     fi
 
     echo
@@ -162,7 +162,7 @@ do_install() {
 }
 
 do_uninstall() {
-    log_info "Removing BioAuth KDE integration..."
+    log_info "Removing Hiya KDE integration..."
     echo
 
     for service in sddm kde polkit-1 sudo; do
@@ -172,41 +172,41 @@ do_uninstall() {
         if [[ -f "$backup" ]]; then
             mv "$backup" "$target"
             log_ok "$service: restored original PAM config"
-        elif grep -q "pam_bioauth" "$target" 2>/dev/null; then
-            # Remove bioauth lines from the file
-            sed -i '/pam_bioauth/d' "$target"
-            sed -i '/BioAuth fingerprint/d' "$target"
-            log_ok "$service: removed BioAuth lines"
+        elif grep -q "pam_hiya" "$target" 2>/dev/null; then
+            # Remove hiya lines from the file
+            sed -i '/pam_hiya/d' "$target"
+            sed -i '/Hiya fingerprint/d' "$target"
+            log_ok "$service: removed Hiya lines"
         else
-            log_info "$service: no BioAuth config found"
+            log_info "$service: no Hiya config found"
         fi
     done
 
     echo
-    log_ok "BioAuth KDE integration removed. Original PAM configs restored."
+    log_ok "Hiya KDE integration removed. Original PAM configs restored."
 }
 
 do_status() {
-    echo "BioAuth KDE Plasma 6 Integration Status"
+    echo "Hiya KDE Plasma 6 Integration Status"
     echo "========================================"
     echo
 
     # PAM module
-    if [[ -f "$BIOAUTH_PAM" ]]; then
+    if [[ -f "$HIYA_PAM" ]]; then
         log_ok "PAM module: installed"
     else
         log_error "PAM module: not found"
     fi
 
     # Daemon
-    if systemctl is-active --quiet biometric-authd.service 2>/dev/null; then
+    if systemctl is-active --quiet hiya-authd.service 2>/dev/null; then
         log_ok "Daemon: running"
     else
         log_warn "Daemon: not running"
     fi
 
     # fprintd compat
-    if systemctl is-active --quiet biometric-authd.service 2>/dev/null &&
+    if systemctl is-active --quiet hiya-authd.service 2>/dev/null &&
        gdbus introspect -y -d net.reactivated.Fprint -o /net/reactivated/Fprint/Manager &>/dev/null; then
         log_ok "fprintd compatibility: active"
     else
@@ -217,10 +217,10 @@ do_status() {
     echo "PAM Service Configurations:"
     for service in sddm kde polkit-1 sudo; do
         local target="${PAM_DIR}/${service}"
-        if [[ -f "$target" ]] && grep -q "pam_bioauth" "$target" 2>/dev/null; then
-            log_ok "  $service: BioAuth enabled"
+        if [[ -f "$target" ]] && grep -q "pam_hiya" "$target" 2>/dev/null; then
+            log_ok "  $service: Hiya enabled"
         elif [[ -f "$target" ]]; then
-            log_warn "  $service: exists but no BioAuth"
+            log_warn "  $service: exists but no Hiya"
         else
             log_info "  $service: not present"
         fi
@@ -249,8 +249,8 @@ case "${1:-status}" in
         echo "Usage: $0 {install|uninstall|status}"
         echo
         echo "Commands:"
-        echo "  install     Install BioAuth PAM configs for KDE Plasma 6"
-        echo "  uninstall   Remove BioAuth configs, restore originals"
+        echo "  install     Install Hiya PAM configs for KDE Plasma 6"
+        echo "  uninstall   Remove Hiya configs, restore originals"
         echo "  status      Show current integration status"
         exit 1
         ;;

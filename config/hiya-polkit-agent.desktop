@@ -1,7 +1,7 @@
 [Desktop Entry]
-Name=BioAuth Polkit Agent
+Name=Hiya Polkit Agent
 Comment=Fingerprint authentication agent for privilege escalation
-Exec=/usr/local/libexec/bioauth-overlay
+Exec=/usr/local/libexec/hiya-overlay
 Type=Application
 NoDisplay=true
 OnlyShowIn=KDE;

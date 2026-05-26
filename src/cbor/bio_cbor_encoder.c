@@ -1,7 +1,7 @@
 /*
  * bio_cbor_encoder.c — CBOR Encoder (RFC 8949, CTAP2 Canonical)
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Hand-coded CBOR encoder implementing deterministic encoding per

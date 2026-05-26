@@ -1,12 +1,12 @@
 /*
- * bio_daemon.h — BioAuth D-Bus Daemon Interface
+ * bio_daemon.h — Hiya D-Bus Daemon Interface
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
- * biometric-authd: system D-Bus service that coordinates
+ * hiya-authd: system D-Bus service that coordinates
  * fingerprint enrollment/verification, TPM operations,
- * and exposes the org.bioauth.Manager interface.
+ * and exposes the org.hiya.Manager interface.
  */
 
 #ifndef BIO_DAEMON_H
@@ -78,7 +78,7 @@ extern "C"
         char tpm_device[64];            /* Default: /dev/tpmrm0 */
         char howdy_binary[256];         /* Default: howdy */
         int vault_idle_timeout_seconds; /* Default: 1800 (30 min) */
-        char state_dir[256];            /* Default: /var/lib/bioauth */
+        char state_dir[256];            /* Default: /var/lib/hiya */
         char config_file[256];          /* Source config file */
         char device_driver[64];         /* Preferred driver or empty */
         bool log_to_journal;            /* Default: true */

@@ -1,7 +1,7 @@
 /*
  * pm_vault_format.h - PM vault binary container format I/O
  *
- * Copyright (C) 2026 BioAuth Project
+ * Copyright (C) 2026 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 

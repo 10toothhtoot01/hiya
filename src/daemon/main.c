@@ -1,7 +1,7 @@
 /*
- * main.c — BioAuth daemon entry point
+ * main.c — Hiya daemon entry point
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 

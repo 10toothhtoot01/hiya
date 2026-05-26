@@ -1,12 +1,12 @@
 /*
- * bio_daemon.c — BioAuth D-Bus System Daemon Implementation
+ * bio_daemon.c — Hiya D-Bus System Daemon Implementation
  *
- * Copyright (C) 2024 BioAuth Project
+ * Copyright (C) 2024 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Main daemon process that:
  *   1. Connects to the system D-Bus
- *   2. Owns the org.bioauth.Manager name
+ *   2. Owns the org.hiya.Manager name
  *   3. Handles method calls (GetDevices, Enroll, Verify, etc.)
  *   4. Manages sessions and enrollments
  *   5. Interfaces with fingerprint + TPM subsystems
@@ -47,22 +47,22 @@
 #include <gio/gio.h>
 #include <systemd/sd-journal.h>
 
-#define BIOAUTH_VAULT_DBUS_NAME "org.bioauth.Vault"
-#define BIOAUTH_VAULT_DBUS_INTERFACE "org.bioauth.Vault"
-#define BIOAUTH_DAEMON_DBUS_NAME "org.bioauth.Daemon"
-#define BIOAUTH_DAEMON_DBUS_PATH "/org/bioauth/Daemon"
-#define BIOAUTH_AUTH_DBUS_INTERFACE "org.bioauth.Auth"
-#define BIOAUTH_ENROLL_DBUS_INTERFACE "org.bioauth.Enroll"
+#define HIYA_VAULT_DBUS_NAME "org.hiya.Vault"
+#define HIYA_VAULT_DBUS_INTERFACE "org.hiya.Vault"
+#define HIYA_DAEMON_DBUS_NAME "org.hiya.Daemon"
+#define HIYA_DAEMON_DBUS_PATH "/org/hiya/Daemon"
+#define HIYA_AUTH_DBUS_INTERFACE "org.hiya.Auth"
+#define HIYA_ENROLL_DBUS_INTERFACE "org.hiya.Enroll"
 #define BIO_MAX_VAULTS 64
 
 #define PASSKEY_KIND_VALUE "passkey"
-#define PASSKEY_FIELD_KIND "bioauth.kind"
+#define PASSKEY_FIELD_KIND "hiya.kind"
 #define PASSKEY_FIELD_RP_ID "passkey.rp_id"
 #define PASSKEY_FIELD_USER_ID "passkey.user_id"
 #define PASSKEY_FIELD_PRIVATE_KEY_B64 "passkey.private_key_b64"
 #define PASSKEY_FIELD_PUBLIC_KEY_B64 "passkey.public_key_b64"
 
-#define BIOAUTH_HOWDY_BIN_ENV "BIOAUTH_HOWDY_BIN"
+#define HIYA_HOWDY_BIN_ENV "HIYA_HOWDY_BIN"
 #define BIO_MAX_FACE_ENROLL_SESSIONS 16
 #define BIO_FACE_ENROLL_SESSION_TTL 900
 
@@ -107,7 +107,7 @@ static void daemon_log_auth(uid_t uid, const char *event,
 
 static const char *introspection_xml =
     "<node>"
-    "  <interface name='" BIOAUTH_DBUS_INTERFACE "'>"
+    "  <interface name='" HIYA_DBUS_INTERFACE "'>"
     ""
     "    <method name='GetDevices'>"
     "      <arg direction='out' type='a(ssbbn)' name='devices'/>"
@@ -177,7 +177,7 @@ static const char *introspection_xml =
     ""
     "  </interface>"
     ""
-    "  <interface name='" BIOAUTH_AUTH_DBUS_INTERFACE "'>"
+    "  <interface name='" HIYA_AUTH_DBUS_INTERFACE "'>"
     "    <method name='Authenticate'>"
     "      <arg direction='in' type='s' name='reason'/>"
     "      <arg direction='out' type='b' name='success'/>"
@@ -212,7 +212,7 @@ static const char *introspection_xml =
     "    </signal>"
     "  </interface>"
     ""
-    "  <interface name='" BIOAUTH_ENROLL_DBUS_INTERFACE "'>"
+    "  <interface name='" HIYA_ENROLL_DBUS_INTERFACE "'>"
     "    <method name='StartFaceEnroll'>"
     "      <arg direction='in' type='s' name='label'/>"
     "      <arg direction='out' type='s' name='session_id'/>"
@@ -262,7 +262,7 @@ static const char *introspection_xml =
     "    </signal>"
     "  </interface>"
     ""
-    "  <interface name='" BIOAUTH_VAULT_DBUS_INTERFACE "'>"
+    "  <interface name='" HIYA_VAULT_DBUS_INTERFACE "'>"
     "    <method name='GetCredential'>"
     "      <arg direction='in'  type='s' name='url'/>"
     "      <arg direction='in'  type='s' name='field'/>"
@@ -600,7 +600,7 @@ static pid_t get_caller_pid(GDBusConnection *conn,
 
 /*
  * Trusted portal caller policy for VerifyUser:
- *   - binary path must be /usr/libexec/bioauth-portal
+ *   - binary path must be /usr/libexec/hiya-portal
  *   - binary must be root-owned and not group/world writable
  */
 static bool caller_is_trusted_portal(GDBusConnection *conn,
@@ -619,7 +619,7 @@ static bool caller_is_trusted_portal(GDBusConnection *conn,
         return false;
     exe_path[n] = '\0';
 
-    if (strcmp(exe_path, "/usr/libexec/bioauth-portal") != 0)
+    if (strcmp(exe_path, "/usr/libexec/hiya-portal") != 0)
         return false;
 
     struct stat st;
@@ -2267,8 +2267,8 @@ static void emit_vault_locked_property_changed(GDBusConnection *connection,
                                                gboolean locked)
 {
     static const char *paths[] = {
-        BIOAUTH_DBUS_PATH,
-        BIOAUTH_DAEMON_DBUS_PATH,
+        HIYA_DBUS_PATH,
+        HIYA_DAEMON_DBUS_PATH,
     };
 
     if (!connection)
@@ -2296,7 +2296,7 @@ static void emit_vault_locked_property_changed(GDBusConnection *connection,
             "org.freedesktop.DBus.Properties",
             "PropertiesChanged",
             g_variant_new("(sa{sv}as)",
-                          BIOAUTH_VAULT_DBUS_INTERFACE,
+                          HIYA_VAULT_DBUS_INTERFACE,
                           &changed_builder,
                           &invalidated_builder),
             &err);
@@ -2736,13 +2736,13 @@ void bio_daemon_config_defaults(bio_daemon_config_t *cfg)
     cfg->tpm_require = false;
     cfg->tpm_pcr_binding = false;
     cfg->tpm_pcr_index = 7;
-    cfg->tpm_primary_handle = BIOAUTH_TPM_PRIMARY_HANDLE;
+    cfg->tpm_primary_handle = HIYA_TPM_PRIMARY_HANDLE;
     strncpy(cfg->tpm_device, "/dev/tpmrm0", sizeof(cfg->tpm_device) - 1);
     strncpy(cfg->howdy_binary, "howdy", sizeof(cfg->howdy_binary) - 1);
     cfg->vault_idle_timeout_seconds = 1800; /* 30 minutes */
-    strncpy(cfg->state_dir, BIOAUTH_STATE_DIR,
+    strncpy(cfg->state_dir, HIYA_STATE_DIR,
             sizeof(cfg->state_dir) - 1);
-    strncpy(cfg->config_file, BIOAUTH_CONFIG_FILE,
+    strncpy(cfg->config_file, HIYA_CONFIG_FILE,
             sizeof(cfg->config_file) - 1);
     cfg->log_to_journal = true;
     cfg->log_level = BIO_LOG_DEBUG;
@@ -3628,7 +3628,7 @@ static void emit_enroll_progress(bio_daemon_t *d,
     GError *err = NULL;
     g_dbus_connection_emit_signal(
         d->bus, NULL,
-        BIOAUTH_DBUS_PATH, BIOAUTH_DBUS_INTERFACE,
+        HIYA_DBUS_PATH, HIYA_DBUS_INTERFACE,
         "EnrollProgress",
         g_variant_new("(nnn)", status, stage, total),
         &err);
@@ -3646,7 +3646,7 @@ static void emit_device_added(bio_daemon_t *d, const char *name)
     GError *err = NULL;
     g_dbus_connection_emit_signal(
         d->bus, NULL,
-        BIOAUTH_DBUS_PATH, BIOAUTH_DBUS_INTERFACE,
+        HIYA_DBUS_PATH, HIYA_DBUS_INTERFACE,
         "DeviceAdded", g_variant_new("(s)", name), &err);
     if (err)
     {
@@ -3662,7 +3662,7 @@ static void emit_device_removed(bio_daemon_t *d, const char *name)
     GError *err = NULL;
     g_dbus_connection_emit_signal(
         d->bus, NULL,
-        BIOAUTH_DBUS_PATH, BIOAUTH_DBUS_INTERFACE,
+        HIYA_DBUS_PATH, HIYA_DBUS_INTERFACE,
         "DeviceRemoved", g_variant_new("(s)", name), &err);
     if (err)
     {
@@ -3673,7 +3673,7 @@ static void emit_device_removed(bio_daemon_t *d, const char *name)
 
 static bool object_path_is_daemon_api(const gchar *object_path)
 {
-    return object_path && strcmp(object_path, BIOAUTH_DAEMON_DBUS_PATH) == 0;
+    return object_path && strcmp(object_path, HIYA_DAEMON_DBUS_PATH) == 0;
 }
 
 static void session_token_to_hex(const uint8_t *token,
@@ -3713,8 +3713,8 @@ static void emit_auth_state_changed(bio_daemon_t *d,
     g_dbus_connection_emit_signal(
         d->bus,
         NULL,
-        BIOAUTH_DAEMON_DBUS_PATH,
-        BIOAUTH_AUTH_DBUS_INTERFACE,
+        HIYA_DAEMON_DBUS_PATH,
+        HIYA_AUTH_DBUS_INTERFACE,
         "AuthStateChanged",
         g_variant_new("(bs)", authenticated, method ? method : "unknown"),
         &err);
@@ -3738,8 +3738,8 @@ static void emit_uv_success(bio_daemon_t *d,
     g_dbus_connection_emit_signal(
         d->bus,
         NULL,
-        BIOAUTH_DAEMON_DBUS_PATH,
-        BIOAUTH_AUTH_DBUS_INTERFACE,
+        HIYA_DAEMON_DBUS_PATH,
+        HIYA_AUTH_DBUS_INTERFACE,
         "UV_SUCCESS",
         g_variant_new("(ss)",
                       session_id ? session_id : "",
@@ -3766,8 +3766,8 @@ static void emit_enroll_progress_v2(bio_daemon_t *d,
     g_dbus_connection_emit_signal(
         d->bus,
         NULL,
-        BIOAUTH_DAEMON_DBUS_PATH,
-        BIOAUTH_ENROLL_DBUS_INTERFACE,
+        HIYA_DAEMON_DBUS_PATH,
+        HIYA_ENROLL_DBUS_INTERFACE,
         "EnrollProgress",
         g_variant_new("(sus)",
                       session_id ? session_id : "",
@@ -3784,8 +3784,8 @@ static void emit_enroll_progress_v2(bio_daemon_t *d,
 static void emit_vault_state_changed(bio_daemon_t *d, const char *state)
 {
     static const char *paths[] = {
-        BIOAUTH_DBUS_PATH,
-        BIOAUTH_DAEMON_DBUS_PATH,
+        HIYA_DBUS_PATH,
+        HIYA_DAEMON_DBUS_PATH,
     };
 
     if (!d || !d->bus)
@@ -3800,7 +3800,7 @@ static void emit_vault_state_changed(bio_daemon_t *d, const char *state)
             d->bus,
             NULL,
             paths[i],
-            BIOAUTH_VAULT_DBUS_INTERFACE,
+            HIYA_VAULT_DBUS_INTERFACE,
             "VaultStateChanged",
             g_variant_new("(s)", state ? state : "unknown"),
             &err);
@@ -3817,8 +3817,8 @@ static void emit_vault_state_changed(bio_daemon_t *d, const char *state)
 static void emit_vault_unlocked(bio_daemon_t *d, uid_t uid)
 {
     static const char *paths[] = {
-        BIOAUTH_DBUS_PATH,
-        BIOAUTH_DAEMON_DBUS_PATH,
+        HIYA_DBUS_PATH,
+        HIYA_DAEMON_DBUS_PATH,
     };
 
     if (!d || !d->bus)
@@ -3833,7 +3833,7 @@ static void emit_vault_unlocked(bio_daemon_t *d, uid_t uid)
             d->bus,
             NULL,
             paths[i],
-            BIOAUTH_VAULT_DBUS_INTERFACE,
+            HIYA_VAULT_DBUS_INTERFACE,
             "VaultUnlocked",
             g_variant_new("(u)", (guint32)uid),
             &err);
@@ -3875,7 +3875,7 @@ static int username_for_uid(uid_t uid, char *out, size_t out_len)
 
 static const char *howdy_binary_path(const bio_daemon_t *d)
 {
-    const char *override = getenv(BIOAUTH_HOWDY_BIN_ENV);
+    const char *override = getenv(HIYA_HOWDY_BIN_ENV);
 
     if (override && override[0] != '\0')
     {
@@ -4725,8 +4725,8 @@ static void handle_method_call(GDBusConnection *connection,
         return;
     }
 
-    /* ── org.bioauth.Auth methods ───────────────────────────── */
-    if (g_strcmp0(interface_name, BIOAUTH_AUTH_DBUS_INTERFACE) == 0 &&
+    /* ── org.hiya.Auth methods ───────────────────────────── */
+    if (g_strcmp0(interface_name, HIYA_AUTH_DBUS_INTERFACE) == 0 &&
         g_strcmp0(method_name, "Authenticate") == 0)
     {
         const gchar *reason = NULL;
@@ -4804,7 +4804,7 @@ static void handle_method_call(GDBusConnection *connection,
         return;
     }
 
-    else if (g_strcmp0(interface_name, BIOAUTH_AUTH_DBUS_INTERFACE) == 0 &&
+    else if (g_strcmp0(interface_name, HIYA_AUTH_DBUS_INTERFACE) == 0 &&
              g_strcmp0(method_name, "AuthenticateInteractive") == 0)
     {
         const gchar *reason = NULL;
@@ -4884,7 +4884,7 @@ static void handle_method_call(GDBusConnection *connection,
         return;
     }
 
-    else if (g_strcmp0(interface_name, BIOAUTH_AUTH_DBUS_INTERFACE) == 0 &&
+    else if (g_strcmp0(interface_name, HIYA_AUTH_DBUS_INTERFACE) == 0 &&
              g_strcmp0(method_name, "IsAuthenticated") == 0)
     {
         guint seconds_remaining = 0;
@@ -4900,7 +4900,7 @@ static void handle_method_call(GDBusConnection *connection,
         return;
     }
 
-    else if (g_strcmp0(interface_name, BIOAUTH_AUTH_DBUS_INTERFACE) == 0 &&
+    else if (g_strcmp0(interface_name, HIYA_AUTH_DBUS_INTERFACE) == 0 &&
              g_strcmp0(method_name, "ExtendSession") == 0)
     {
         guint32 extend_seconds = 0;
@@ -4967,7 +4967,7 @@ static void handle_method_call(GDBusConnection *connection,
         return;
     }
 
-    else if (g_strcmp0(interface_name, BIOAUTH_AUTH_DBUS_INTERFACE) == 0 &&
+    else if (g_strcmp0(interface_name, HIYA_AUTH_DBUS_INTERFACE) == 0 &&
              g_strcmp0(method_name, "RevokeSession") == 0)
     {
         size_t revoked = revoke_sessions_for_sender(d, caller_uid, sender);
@@ -4979,8 +4979,8 @@ static void handle_method_call(GDBusConnection *connection,
         return;
     }
 
-    /* ── org.bioauth.Enroll methods ─────────────────────────── */
-    else if (g_strcmp0(interface_name, BIOAUTH_ENROLL_DBUS_INTERFACE) == 0 &&
+    /* ── org.hiya.Enroll methods ─────────────────────────── */
+    else if (g_strcmp0(interface_name, HIYA_ENROLL_DBUS_INTERFACE) == 0 &&
              g_strcmp0(method_name, "StartFingerEnroll") == 0)
     {
         const gchar *finger_id = NULL;
@@ -5053,7 +5053,7 @@ static void handle_method_call(GDBusConnection *connection,
         return;
     }
 
-    else if (g_strcmp0(interface_name, BIOAUTH_ENROLL_DBUS_INTERFACE) == 0 &&
+    else if (g_strcmp0(interface_name, HIYA_ENROLL_DBUS_INTERFACE) == 0 &&
              g_strcmp0(method_name, "ListEnrolledFingers") == 0)
     {
         GVariantBuilder list_builder;
@@ -5101,7 +5101,7 @@ static void handle_method_call(GDBusConnection *connection,
         return;
     }
 
-    else if (g_strcmp0(interface_name, BIOAUTH_ENROLL_DBUS_INTERFACE) == 0 &&
+    else if (g_strcmp0(interface_name, HIYA_ENROLL_DBUS_INTERFACE) == 0 &&
              g_strcmp0(method_name, "RemoveFinger") == 0)
     {
         const gchar *finger_id = NULL;
@@ -5160,7 +5160,7 @@ static void handle_method_call(GDBusConnection *connection,
         return;
     }
 
-    else if (g_strcmp0(interface_name, BIOAUTH_ENROLL_DBUS_INTERFACE) == 0 &&
+    else if (g_strcmp0(interface_name, HIYA_ENROLL_DBUS_INTERFACE) == 0 &&
              g_strcmp0(method_name, "StartFaceEnroll") == 0)
     {
         const gchar *label = NULL;
@@ -5175,7 +5175,7 @@ static void handle_method_call(GDBusConnection *connection,
                 G_DBUS_ERROR,
                 G_DBUS_ERROR_NOT_SUPPORTED,
                 "Howdy is not available (set %s if installed in a custom location)",
-                BIOAUTH_HOWDY_BIN_ENV);
+                HIYA_HOWDY_BIN_ENV);
             return;
         }
 
@@ -5211,7 +5211,7 @@ static void handle_method_call(GDBusConnection *connection,
         return;
     }
 
-    else if (g_strcmp0(interface_name, BIOAUTH_ENROLL_DBUS_INTERFACE) == 0 &&
+    else if (g_strcmp0(interface_name, HIYA_ENROLL_DBUS_INTERFACE) == 0 &&
              g_strcmp0(method_name, "GetEnrollFrame") == 0)
     {
         const gchar *session_id = NULL;
@@ -5241,7 +5241,7 @@ static void handle_method_call(GDBusConnection *connection,
         return;
     }
 
-    else if (g_strcmp0(interface_name, BIOAUTH_ENROLL_DBUS_INTERFACE) == 0 &&
+    else if (g_strcmp0(interface_name, HIYA_ENROLL_DBUS_INTERFACE) == 0 &&
              g_strcmp0(method_name, "CommitFaceEnroll") == 0)
     {
         const gchar *session_id = NULL;
@@ -5269,7 +5269,7 @@ static void handle_method_call(GDBusConnection *connection,
                 G_DBUS_ERROR,
                 G_DBUS_ERROR_NOT_SUPPORTED,
                 "Howdy is not available (set %s if installed in a custom location)",
-                BIOAUTH_HOWDY_BIN_ENV);
+                HIYA_HOWDY_BIN_ENV);
             return;
         }
 
@@ -5329,7 +5329,7 @@ static void handle_method_call(GDBusConnection *connection,
         return;
     }
 
-    else if (g_strcmp0(interface_name, BIOAUTH_ENROLL_DBUS_INTERFACE) == 0 &&
+    else if (g_strcmp0(interface_name, HIYA_ENROLL_DBUS_INTERFACE) == 0 &&
              g_strcmp0(method_name, "ListEnrolledFaces") == 0)
     {
         char username[256];
@@ -5346,7 +5346,7 @@ static void handle_method_call(GDBusConnection *connection,
                 G_DBUS_ERROR,
                 G_DBUS_ERROR_NOT_SUPPORTED,
                 "Howdy is not available (set %s if installed in a custom location)",
-                BIOAUTH_HOWDY_BIN_ENV);
+                HIYA_HOWDY_BIN_ENV);
             return;
         }
 
@@ -5429,7 +5429,7 @@ static void handle_method_call(GDBusConnection *connection,
         return;
     }
 
-    else if (g_strcmp0(interface_name, BIOAUTH_ENROLL_DBUS_INTERFACE) == 0 &&
+    else if (g_strcmp0(interface_name, HIYA_ENROLL_DBUS_INTERFACE) == 0 &&
              g_strcmp0(method_name, "RemoveFace") == 0)
     {
         const gchar *face_id = NULL;
@@ -5458,7 +5458,7 @@ static void handle_method_call(GDBusConnection *connection,
                 G_DBUS_ERROR,
                 G_DBUS_ERROR_NOT_SUPPORTED,
                 "Howdy is not available (set %s if installed in a custom location)",
-                BIOAUTH_HOWDY_BIN_ENV);
+                HIYA_HOWDY_BIN_ENV);
             return;
         }
 
@@ -5552,7 +5552,7 @@ static void handle_method_call(GDBusConnection *connection,
         return;
     }
 
-    else if (g_strcmp0(interface_name, BIOAUTH_ENROLL_DBUS_INTERFACE) == 0 &&
+    else if (g_strcmp0(interface_name, HIYA_ENROLL_DBUS_INTERFACE) == 0 &&
              g_strcmp0(method_name, "AbortEnroll") == 0)
     {
         const gchar *session_id = NULL;
@@ -5774,9 +5774,9 @@ static void handle_method_call(GDBusConnection *connection,
                     invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED,
                     "Finger already enrolled on sensor and chip clear "
                     "failed. Clear manually: sudo dbus-send --system "
-                    "--print-reply --dest=org.bioauth.Manager "
-                    "/org/bioauth/Manager "
-                    "org.bioauth.Manager.ClearDevice");
+                    "--print-reply --dest=org.hiya.Manager "
+                    "/org/hiya/Manager "
+                    "org.hiya.Manager.ClearDevice");
                 return;
             }
 
@@ -6351,7 +6351,7 @@ static void handle_method_call(GDBusConnection *connection,
         GError *sig_err = NULL;
         g_dbus_connection_emit_signal(
             d->bus, NULL,
-            BIOAUTH_DBUS_PATH, BIOAUTH_DBUS_INTERFACE,
+            HIYA_DBUS_PATH, HIYA_DBUS_INTERFACE,
             "VerifyResult",
             g_variant_new("(b)", matched),
             &sig_err);
@@ -7956,14 +7956,14 @@ static void handle_method_call(GDBusConnection *connection,
 
         if (daemon_api_path)
         {
-            /* New API ordering on /org/bioauth/Daemon:
+            /* New API ordering on /org/hiya/Daemon:
              * SaveCredential(title, url, username, password) */
             g_variant_get(parameters, "(&s&s&s&s)",
                           &title, &url, &username, &password);
         }
         else
         {
-            /* Legacy ordering on /org/bioauth/Manager:
+            /* Legacy ordering on /org/hiya/Manager:
              * SaveCredential(url, username, password, title) */
             g_variant_get(parameters, "(&s&s&s&s)",
                           &url, &username, &password, &title);
@@ -8717,7 +8717,7 @@ static GVariant *handle_get_property(GDBusConnection *connection,
         return NULL;
     }
 
-    if (strcmp(interface_name, BIOAUTH_VAULT_DBUS_INTERFACE) != 0 ||
+    if (strcmp(interface_name, HIYA_VAULT_DBUS_INTERFACE) != 0 ||
         strcmp(property_name, "Locked") != 0)
     {
         return NULL;
@@ -8771,16 +8771,16 @@ static void on_bus_acquired(GDBusConnection *connection,
 
     GDBusInterfaceInfo *iface =
         g_dbus_node_info_lookup_interface(d->introspection_data,
-                                          BIOAUTH_DBUS_INTERFACE);
+                                          HIYA_DBUS_INTERFACE);
     GDBusInterfaceInfo *vault_iface =
         g_dbus_node_info_lookup_interface(d->introspection_data,
-                                          BIOAUTH_VAULT_DBUS_INTERFACE);
+                                          HIYA_VAULT_DBUS_INTERFACE);
     GDBusInterfaceInfo *auth_iface =
         g_dbus_node_info_lookup_interface(d->introspection_data,
-                                          BIOAUTH_AUTH_DBUS_INTERFACE);
+                                          HIYA_AUTH_DBUS_INTERFACE);
     GDBusInterfaceInfo *enroll_iface =
         g_dbus_node_info_lookup_interface(d->introspection_data,
-                                          BIOAUTH_ENROLL_DBUS_INTERFACE);
+                                          HIYA_ENROLL_DBUS_INTERFACE);
 
     if (!iface || !vault_iface || !auth_iface || !enroll_iface)
     {
@@ -8791,7 +8791,7 @@ static void on_bus_acquired(GDBusConnection *connection,
 
     d->registration_id = g_dbus_connection_register_object(
         connection,
-        BIOAUTH_DBUS_PATH,
+        HIYA_DBUS_PATH,
         iface,
         &interface_vtable,
         d, NULL, &err);
@@ -8808,7 +8808,7 @@ static void on_bus_acquired(GDBusConnection *connection,
 
     d->vault_registration_id = g_dbus_connection_register_object(
         connection,
-        BIOAUTH_DBUS_PATH,
+        HIYA_DBUS_PATH,
         vault_iface,
         &interface_vtable,
         d, NULL, &err);
@@ -8825,7 +8825,7 @@ static void on_bus_acquired(GDBusConnection *connection,
 
     d->daemon_auth_registration_id = g_dbus_connection_register_object(
         connection,
-        BIOAUTH_DAEMON_DBUS_PATH,
+        HIYA_DAEMON_DBUS_PATH,
         auth_iface,
         &interface_vtable,
         d, NULL, &err);
@@ -8833,7 +8833,7 @@ static void on_bus_acquired(GDBusConnection *connection,
     if (d->daemon_auth_registration_id == 0)
     {
         BIO_ERROR("Failed to register Auth D-Bus object on %s: %s",
-                  BIOAUTH_DAEMON_DBUS_PATH,
+                  HIYA_DAEMON_DBUS_PATH,
                   err ? err->message : "unknown");
         if (err)
             g_error_free(err);
@@ -8843,7 +8843,7 @@ static void on_bus_acquired(GDBusConnection *connection,
 
     d->daemon_vault_registration_id = g_dbus_connection_register_object(
         connection,
-        BIOAUTH_DAEMON_DBUS_PATH,
+        HIYA_DAEMON_DBUS_PATH,
         vault_iface,
         &interface_vtable,
         d, NULL, &err);
@@ -8851,7 +8851,7 @@ static void on_bus_acquired(GDBusConnection *connection,
     if (d->daemon_vault_registration_id == 0)
     {
         BIO_ERROR("Failed to register Vault D-Bus object on %s: %s",
-                  BIOAUTH_DAEMON_DBUS_PATH,
+                  HIYA_DAEMON_DBUS_PATH,
                   err ? err->message : "unknown");
         if (err)
             g_error_free(err);
@@ -8861,7 +8861,7 @@ static void on_bus_acquired(GDBusConnection *connection,
 
     d->daemon_enroll_registration_id = g_dbus_connection_register_object(
         connection,
-        BIOAUTH_DAEMON_DBUS_PATH,
+        HIYA_DAEMON_DBUS_PATH,
         enroll_iface,
         &interface_vtable,
         d, NULL, &err);
@@ -8869,7 +8869,7 @@ static void on_bus_acquired(GDBusConnection *connection,
     if (d->daemon_enroll_registration_id == 0)
     {
         BIO_ERROR("Failed to register Enroll D-Bus object on %s: %s",
-                  BIOAUTH_DAEMON_DBUS_PATH,
+                  HIYA_DAEMON_DBUS_PATH,
                   err ? err->message : "unknown");
         if (err)
             g_error_free(err);
@@ -8879,7 +8879,7 @@ static void on_bus_acquired(GDBusConnection *connection,
 
     d->vault_bus_name_id = g_bus_own_name_on_connection(
         connection,
-        BIOAUTH_VAULT_DBUS_NAME,
+        HIYA_VAULT_DBUS_NAME,
         G_BUS_NAME_OWNER_FLAGS_NONE,
         on_name_acquired,
         on_name_lost,
@@ -8888,7 +8888,7 @@ static void on_bus_acquired(GDBusConnection *connection,
 
     d->daemon_bus_name_id = g_bus_own_name_on_connection(
         connection,
-        BIOAUTH_DAEMON_DBUS_NAME,
+        HIYA_DAEMON_DBUS_NAME,
         G_BUS_NAME_OWNER_FLAGS_NONE,
         on_name_acquired,
         on_name_lost,
@@ -8896,8 +8896,8 @@ static void on_bus_acquired(GDBusConnection *connection,
         NULL);
 
     BIO_INFO("D-Bus objects registered at %s and %s",
-             BIOAUTH_DBUS_PATH,
-             BIOAUTH_DAEMON_DBUS_PATH);
+             HIYA_DBUS_PATH,
+             HIYA_DAEMON_DBUS_PATH);
 
     /* Initialize fprintd compatibility layer — provides
      * net.reactivated.Fprint.Manager and net.reactivated.Fprint.Device
@@ -8937,15 +8937,15 @@ static void on_name_acquired(GDBusConnection *connection,
 
     if (d)
     {
-        if (g_strcmp0(name, BIOAUTH_DBUS_NAME) == 0)
+        if (g_strcmp0(name, HIYA_DBUS_NAME) == 0)
         {
             d->bus_name_owned = true;
         }
-        else if (g_strcmp0(name, BIOAUTH_VAULT_DBUS_NAME) == 0)
+        else if (g_strcmp0(name, HIYA_VAULT_DBUS_NAME) == 0)
         {
             d->vault_bus_name_owned = true;
         }
-        else if (g_strcmp0(name, BIOAUTH_DAEMON_DBUS_NAME) == 0)
+        else if (g_strcmp0(name, HIYA_DAEMON_DBUS_NAME) == 0)
         {
             d->daemon_bus_name_owned = true;
         }
@@ -8963,15 +8963,15 @@ static void on_name_lost(GDBusConnection *connection,
 
     if (d)
     {
-        if (g_strcmp0(name, BIOAUTH_DBUS_NAME) == 0)
+        if (g_strcmp0(name, HIYA_DBUS_NAME) == 0)
         {
             d->bus_name_owned = false;
         }
-        else if (g_strcmp0(name, BIOAUTH_VAULT_DBUS_NAME) == 0)
+        else if (g_strcmp0(name, HIYA_VAULT_DBUS_NAME) == 0)
         {
             d->vault_bus_name_owned = false;
         }
-        else if (g_strcmp0(name, BIOAUTH_DAEMON_DBUS_NAME) == 0)
+        else if (g_strcmp0(name, HIYA_DAEMON_DBUS_NAME) == 0)
         {
             d->daemon_bus_name_owned = false;
         }
@@ -9006,7 +9006,7 @@ static void reload_daemon_config(bio_daemon_t *d)
 
     const char *path = d->config.config_file[0]
                            ? d->config.config_file
-                           : BIOAUTH_CONFIG_FILE;
+                           : HIYA_CONFIG_FILE;
 
     bio_daemon_config_t next;
     bio_daemon_config_defaults(&next);
@@ -9133,7 +9133,7 @@ int bio_daemon_create(bio_daemon_t **daemon_out)
     bio_daemon_config_defaults(&d->config);
     const char *config_path = (g_startup_config_path && g_startup_config_path[0])
                                   ? g_startup_config_path
-                                  : BIOAUTH_CONFIG_FILE;
+                                  : HIYA_CONFIG_FILE;
     bio_daemon_config_load(config_path, &d->config);
 
     if (g_startup_force_no_tpm)
@@ -9225,9 +9225,9 @@ int bio_daemon_create(bio_daemon_t **daemon_out)
                 BIO_WARN("Invalid TPM primary handle configured (0x%08X), "
                          "using default 0x%08X",
                          d->config.tpm_primary_handle,
-                         BIOAUTH_TPM_PRIMARY_HANDLE);
+                         HIYA_TPM_PRIMARY_HANDLE);
                 bio_tpm_set_primary_handle(&d->tpm_ctx,
-                                           BIOAUTH_TPM_PRIMARY_HANDLE);
+                                           HIYA_TPM_PRIMARY_HANDLE);
             }
             d->tpm_available = true;
             BIO_INFO("TPM 2.0 available and initialized");
@@ -9262,7 +9262,7 @@ int bio_daemon_create(bio_daemon_t **daemon_out)
     d->main_loop = g_main_loop_new(NULL, FALSE);
 
     *daemon_out = d;
-    BIO_INFO("BioAuth daemon created");
+    BIO_INFO("Hiya daemon created");
     return BIO_OK;
 }
 
@@ -9326,7 +9326,7 @@ int bio_daemon_run(bio_daemon_t *d)
     /* Own the D-Bus name */
     d->bus_name_id = g_bus_own_name(
         G_BUS_TYPE_SYSTEM,
-        BIOAUTH_DBUS_NAME,
+        HIYA_DBUS_NAME,
         G_BUS_NAME_OWNER_FLAGS_NONE,
         on_bus_acquired,
         on_name_acquired,
@@ -9446,7 +9446,7 @@ int bio_daemon_run(bio_daemon_t *d)
     d->bus_name_id = 0;
     d->bus_name_owned = false;
 
-    BIO_INFO("BioAuth daemon stopped");
+    BIO_INFO("Hiya daemon stopped");
     return BIO_OK;
 }
 
@@ -10046,7 +10046,7 @@ int bio_daemon_list_enrolled_fingers(bio_daemon_t *daemon, const char *user,
 
 int bio_daemon_main(int argc, char **argv)
 {
-    g_startup_config_path = BIOAUTH_CONFIG_FILE;
+    g_startup_config_path = HIYA_CONFIG_FILE;
     g_startup_force_no_tpm = false;
     g_startup_force_debug = false;
 
@@ -10078,13 +10078,13 @@ int bio_daemon_main(int argc, char **argv)
 
         if (strcmp(arg, "--version") == 0)
         {
-            printf("biometric-authd %s\n", BIOAUTH_VERSION_STRING);
+            printf("hiya-authd %s\n", HIYA_VERSION_STRING);
             return 0;
         }
 
         if (strcmp(arg, "--help") == 0 || strcmp(arg, "-h") == 0)
         {
-            printf("Usage: biometric-authd [--config FILE] [--debug] [--no-tpm] [--version] [--help]\n");
+            printf("Usage: hiya-authd [--config FILE] [--debug] [--no-tpm] [--version] [--help]\n");
             return 0;
         }
 
@@ -10093,8 +10093,8 @@ int bio_daemon_main(int argc, char **argv)
     }
 
     sd_journal_print(LOG_INFO,
-                     "biometric-authd v%s starting",
-                     BIOAUTH_VERSION_STRING);
+                     "hiya-authd v%s starting",
+                     HIYA_VERSION_STRING);
 
     bio_daemon_t *daemon;
     int rc = bio_daemon_create(&daemon);

@@ -1,10 +1,10 @@
 /*
- * fido2_main.c — BioAuth FIDO2/CTAP2 Daemon Entry Point
+ * fido2_main.c — Hiya FIDO2/CTAP2 Daemon Entry Point
  *
- * Copyright (C) 2025 BioAuth Project
+ * Copyright (C) 2025 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
- * This is the main entry point for the bioauth-fido2d daemon, which
+ * This is the main entry point for the hiya-fido2d daemon, which
  * provides a Unix domain socket transport for FIDO2/CTAP2 commands.
  * It initialises the cryptographic library, the FIDO2 authenticator
  * context, and the transport layer before entering the event loop.
@@ -18,10 +18,10 @@
  *   6. cleanup & exit
  *
  * Usage:
- *   bioauth-fido2d [--socket PATH] [--storage PATH] [--debug]
+ *   hiya-fido2d [--socket PATH] [--storage PATH] [--debug]
  *
  * Normally started via:
- *   systemctl start bioauth-fido2.service
+ *   systemctl start hiya-fido2.service
  */
 
 #include "fido2/bio_fido2.h"
@@ -45,10 +45,10 @@ static bio_fido2_transport_t *g_transport = NULL;
 static volatile sig_atomic_t g_shutdown_requested = 0;
 
 /*
- * User Verification callback — asks biometric-authd via D-Bus
+ * User Verification callback — asks hiya-authd via D-Bus
  * to verify the user's fingerprint. Returns true if UV succeeds.
  *
- * Uses bioauth's own VerifyUser method on org.bioauth.Manager.
+ * Uses hiya's own VerifyUser method on org.hiya.Manager.
  * Queries logind to determine the actual console user (daemon runs as root).
  */
 
@@ -225,7 +225,7 @@ static bool fido2_uv_callback(void *user_ctx)
                     "org.freedesktop.Notifications",
                     "Notify",
                     g_variant_new("(susssasa{sv}i)",
-                                  "BioAuth",                            /* app_name    */
+                                  "Hiya",                            /* app_name    */
                                   (guint32)0,                           /* replaces_id */
                                   "fingerprint",                        /* app_icon    */
                                   "Passkey — Touch Fingerprint Sensor", /* summary    */
@@ -248,14 +248,14 @@ static bool fido2_uv_callback(void *user_ctx)
         }
     }
 
-    BIO_INFO("FIDO2 UV: verifying user '%s' via biometric-authd", username);
+    BIO_INFO("FIDO2 UV: verifying user '%s' via hiya-authd", username);
 
-    /* Call biometric-authd's VerifyUser method */
+    /* Call hiya-authd's VerifyUser method */
     GVariant *result = g_dbus_connection_call_sync(
         conn,
-        "org.bioauth.Manager",
-        "/org/bioauth/Manager",
-        "org.bioauth.Manager",
+        "org.hiya.Manager",
+        "/org/hiya/Manager",
+        "org.hiya.Manager",
         "VerifyUser",
         g_variant_new("(s)", username),
         G_VARIANT_TYPE("(b)"),
@@ -267,7 +267,7 @@ static bool fido2_uv_callback(void *user_ctx)
 
     if (!result)
     {
-        BIO_WARN("FIDO2 UV: biometric-authd VerifyUser failed: %s",
+        BIO_WARN("FIDO2 UV: hiya-authd VerifyUser failed: %s",
                  err ? err->message : "unknown");
         if (err)
             g_error_free(err);
@@ -296,21 +296,21 @@ static void print_usage(const char *argv0)
     fprintf(stderr,
             "Usage: %s [OPTIONS]\n"
             "\n"
-            "BioAuth FIDO2/CTAP2 transport daemon.\n"
+            "Hiya FIDO2/CTAP2 transport daemon.\n"
             "\n"
             "Options:\n"
             "  --socket PATH    Unix socket path (default: %s)\n"
-            "  --storage PATH   Credential storage directory (default: /var/lib/bioauth/fido2)\n"
+            "  --storage PATH   Credential storage directory (default: /var/lib/hiya/fido2)\n"
             "  --debug          Enable debug logging\n"
             "  -h, --help       Show this help\n"
             "  --version        Show version\n",
-            argv0, BIOAUTH_FIDO2_SOCK_PATH);
+            argv0, HIYA_FIDO2_SOCK_PATH);
 }
 
 int main(int argc, char *argv[])
 {
     const char *sock_path = NULL; /* NULL → use default */
-    const char *storage_path = "/var/lib/bioauth/fido2";
+    const char *storage_path = "/var/lib/hiya/fido2";
     int debug = 0;
 
     /* ── Argument parsing ─────────────────────────────────────── */
@@ -338,7 +338,7 @@ int main(int argc, char *argv[])
             debug = 1;
             break;
         case 'V':
-            printf("bioauth-fido2d %s\n", "1.0.0");
+            printf("hiya-fido2d %s\n", "1.0.0");
             return 0;
         case 'h':
         default:
@@ -360,7 +360,7 @@ int main(int argc, char *argv[])
     int rc = bio_crypto_init();
     if (rc != BIO_OK)
     {
-        fprintf(stderr, "bioauth-fido2d: crypto init failed (rc=%d)\n", rc);
+        fprintf(stderr, "hiya-fido2d: crypto init failed (rc=%d)\n", rc);
         return 1;
     }
     BIO_INFO("FIDO2 daemon: crypto subsystem initialised");
@@ -372,7 +372,7 @@ int main(int argc, char *argv[])
     rc = bio_fido2_init(&fido2_ctx, storage_path);
     if (rc != BIO_OK)
     {
-        fprintf(stderr, "bioauth-fido2d: FIDO2 init failed (rc=%d)\n", rc);
+        fprintf(stderr, "hiya-fido2d: FIDO2 init failed (rc=%d)\n", rc);
         bio_crypto_cleanup();
         return 1;
     }
@@ -389,7 +389,7 @@ int main(int argc, char *argv[])
     rc = bio_fido2_transport_init(&transport, &fido2_ctx, sock_path);
     if (rc != BIO_OK)
     {
-        fprintf(stderr, "bioauth-fido2d: transport init failed (rc=%d)\n", rc);
+        fprintf(stderr, "hiya-fido2d: transport init failed (rc=%d)\n", rc);
         bio_fido2_cleanup(&fido2_ctx);
         bio_crypto_cleanup();
         return 1;
@@ -397,7 +397,7 @@ int main(int argc, char *argv[])
     g_transport = &transport;
 
     BIO_INFO("FIDO2 daemon: transport layer ready (socket=%s)",
-             sock_path ? sock_path : BIOAUTH_FIDO2_SOCK_PATH);
+             sock_path ? sock_path : HIYA_FIDO2_SOCK_PATH);
 
     /* ── 3b. Initialise UHID (virtual USB HID for browsers) ──── */
     bio_fido2_uhid_t uhid;

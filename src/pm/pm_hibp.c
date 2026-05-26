@@ -1,7 +1,7 @@
 /*
  * pm_hibp.c - Have I Been Pwned k-anonymity checks
  *
- * Copyright (C) 2026 BioAuth Project
+ * Copyright (C) 2026 Hiya Project
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -155,7 +155,7 @@ static pm_error_t pm_hibp_fetch_range(const char prefix[6], pm_hibp_buffer_t *ou
     long http_code = 0;
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "bioauth-hibp/1.0");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "hiya-hibp/1.0");
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, PM_HIBP_TIMEOUT_SECONDS);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, PM_HIBP_CONNECT_TIMEOUT_SECONDS);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 0L);
