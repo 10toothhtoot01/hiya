@@ -13,7 +13,7 @@ Replaces fprintd. Works with existing DEs without patching them.
 ## Install
 
 ```bash
-sudo ./install.sh
+sudo ./install.sh install
 ```
 
 Installs build dependencies, compiles, wires PAM, starts the daemon.
