@@ -42,6 +42,7 @@ sudo rm -rf /var/lib/hiya
 
 ## Commands
 
+
 ```
 hiya-enroll --finger N --label "name"   enroll a finger
 hiya-enroll --list                       list enrollments
