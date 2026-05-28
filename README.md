@@ -1,3 +1,6 @@
+
+Disclaimer: This is a vibecoded project, although took very very long time, still, you should know!!just wanted to share project, if its useful to somebody
+
 # Hiya
 
 Fingerprint authentication for Linux. Handles sudo, su, polkit, screen unlock, SSH keys, and browser passkeys from a single enrollment.
